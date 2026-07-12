@@ -29,6 +29,8 @@ The public engine contract is in `packages/game-engine/src/index.ts`.
 - A `DeterministicGameEngine` creates state, applies an action without mutating prior state, creates/restores snapshots, and projects public and player-visible state.
 - A rejected action returns the unchanged state, no events, and a typed rejection.
 - Completed boards are resolved by a pure round scorer that evaluates legality and royalties, scores every unordered player pair, enforces zero-sum totals, and derives next-hand Fantasyland status. Fantasyland boards remain face down during placement and are revealed together at showdown.
+- Immutable multi-hand match state records completed resolutions, accumulates each seat's score, carries Fantasyland qualification into the next hand, and rotates the dealer clockwise. Deck order remains an injected per-hand input.
+- Hand and match snapshots use schema version 1. Unsupported versions require an explicit migration and fail with typed compatibility errors; malformed current-version snapshots fail with a distinct typed validation error.
 
 The same configuration, initial inputs, and ordered accepted actions must always produce structurally equal state, events, and snapshots. The engine does not read the clock, generate random values, use the network, or inspect browser state. Deck order, IDs, and any other nondeterministic input are injected and recorded. Private cards exist only in the authoritative state and the appropriate player's projection.
 

@@ -135,6 +135,11 @@ export {
 } from "./cards";
 export { createStandardDeck, shuffleDeck, type RandomSource } from "./deck";
 export {
+  InvalidSnapshotError,
+  UnsupportedVersionError,
+  type VersionedArtifact,
+} from "./persistence";
+export {
   compareHandEvaluations,
   evaluateFiveCardHand,
   evaluateThreeCardHand,
@@ -172,6 +177,19 @@ export {
   type PlacementRow,
   type PlayerSetup,
 } from "./hand-lifecycle";
+export {
+  completeOfcMatchHand,
+  createOfcMatch,
+  createOfcMatchHand,
+  createOfcMatchSnapshot,
+  restoreOfcMatchSnapshot,
+  type OfcCompletedHand,
+  type OfcMatchCompletion,
+  type OfcMatchPlayerState,
+  type OfcMatchSetup,
+  type OfcMatchSnapshot,
+  type OfcMatchState,
+} from "./match";
 export {
   determineFantasyland,
   evaluateOfcBoard,

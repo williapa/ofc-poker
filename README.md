@@ -6,6 +6,8 @@ Browser implementation of multiplayer Open-Face Chinese Poker, a 2-4 player card
 
 The implementation uses four npm workspaces: a React + Vite client, a deterministic game engine, configurable AI players, and a transport-neutral data provider. See `docs/architecture/code.md` for dependency rules and `docs/workflows.md` for current commands.
 
+The game engine's public API, deterministic lifecycle, replay, scoring, match, and persistence examples are documented in `packages/game-engine/README.md`.
+
 ## Agents.md
 
 Instructions to be included with all agent prompts.

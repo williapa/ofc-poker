@@ -16,6 +16,8 @@ import {
   type OfcHandEvent,
   type OfcHandState,
   type SeatCount,
+  InvalidSnapshotError,
+  UnsupportedVersionError,
 } from "../src/index";
 
 function configuration(seatCount: SeatCount): GameConfiguration {
@@ -451,6 +453,18 @@ describe("action and event validation", () => {
       state: transition.state,
       rejection: { code: "duplicate-event" },
     });
+    const unsupported = applyOfcHandEvent(state, {
+      ...event,
+      schemaVersion: 2,
+    });
+    expect(unsupported).toMatchObject({
+      accepted: false,
+      state,
+      rejection: {
+        code: "unsupported-event-version",
+        message: expect.stringContaining("Migrate"),
+      },
+    });
   });
 });
 
@@ -479,8 +493,11 @@ describe("transport projections and hand policy", () => {
     expect(restored).not.toBe(played.state);
     expect(Object.isFrozen(restored)).toBe(true);
     expect(() => restoreOfcHandSnapshot({ ...snapshot, revision: 99 })).toThrow(
-      "Invalid",
+      InvalidSnapshotError,
     );
+    expect(() =>
+      restoreOfcHandSnapshot({ ...snapshot, schemaVersion: 2 }),
+    ).toThrow(UnsupportedVersionError);
   });
 
   test("does not freeze caller-owned configuration input", () => {

@@ -50,9 +50,12 @@ Each package can also be checked independently from the repository root:
 npm run build --workspace @ofcpoker/game-engine
 npm run test --workspace @ofcpoker/game-engine
 npm run lint --workspace @ofcpoker/game-engine
+npm run test:coverage --workspace @ofcpoker/game-engine
 ```
 
 Replace the workspace name with `@ofcpoker/data-provider`, `@ofcpoker/ai-player`, or `@ofcpoker/client` as needed. Install Playwright's Chromium browser once on a new development machine with `npx playwright install chromium` before running E2E tests.
+
+The engine coverage command uses V8 coverage and enforces minimums of 90% statements, 85% branches, 95% functions, and 90% lines. Coverage output is generated under `packages/game-engine/coverage` and is ignored by git.
 
 Generated `dist`, TypeScript build-info, coverage, and browser-test artifacts are ignored by git.
 

@@ -14,6 +14,7 @@ import type {
   PublicEngineState,
   SeatCount,
 } from "./index";
+import { InvalidSnapshotError, UnsupportedVersionError } from "./persistence";
 
 export type PlacementRow = "front" | "middle" | "back";
 
@@ -31,6 +32,8 @@ export interface OfcBoard {
 export interface PlayerSetup {
   readonly id: PlayerId;
   readonly displayName: string;
+  /** Cumulative score copied from match state; defaults to zero. */
+  readonly score?: number;
 }
 
 export interface OfcHandSetup {
@@ -126,7 +129,11 @@ export type OfcPlayerVisibleState = OfcPublicEngineState &
   };
 
 export type EventRejectionCode =
-  "malformed-event" | "duplicate-event" | "stale-revision" | "invalid-event";
+  | "unsupported-event-version"
+  | "malformed-event"
+  | "duplicate-event"
+  | "stale-revision"
+  | "invalid-event";
 
 export interface EventRejection {
   readonly code: EventRejectionCode;
@@ -211,6 +218,15 @@ function assertSetup(setup: OfcHandSetup): void {
     throw new RangeError("Player IDs and display names must be non-empty");
   }
   if (
+    setup.players.some(
+      ({ score }) =>
+        score !== undefined &&
+        (!Number.isFinite(score) || !Number.isInteger(score)),
+    )
+  ) {
+    throw new RangeError("Player scores must be finite integers");
+  }
+  if (
     !Number.isInteger(setup.dealerSeat) ||
     setup.dealerSeat < 0 ||
     setup.dealerSeat >= count
@@ -239,7 +255,7 @@ export function createOfcHand(setup: OfcHandSetup): OfcHandState {
     ...player,
     seat,
     connected: true,
-    score: 0,
+    score: player.score ?? 0,
     board: { front: [], middle: [], back: [] },
     pendingCards: pendingBySeat[seat] as readonly CardCode[],
   }));
@@ -517,6 +533,14 @@ export function applyOfcHandEvent(
   state: OfcHandState,
   input: OfcHandEvent | unknown,
 ): EventApplication {
+  if (isRecord(input) && input.schemaVersion !== 1) {
+    const error = new UnsupportedVersionError(
+      "ofc-hand-event",
+      input.schemaVersion,
+      [1],
+    );
+    return rejectEvent(state, "unsupported-event-version", error.message);
+  }
   if (!isOfcHandEvent(input))
     return rejectEvent(
       state,
@@ -681,18 +705,27 @@ export function createOfcHandSnapshot(state: OfcHandState): OfcHandSnapshot {
   });
 }
 
-export function restoreOfcHandSnapshot(
-  snapshot: OfcHandSnapshot,
-): OfcHandState {
-  if (
-    snapshot.schemaVersion !== 1 ||
-    snapshot.state.schemaVersion !== 1 ||
-    snapshot.gameId !== snapshot.state.gameId ||
-    snapshot.revision !== snapshot.state.revision
-  ) {
-    throw new RangeError("Invalid OFC hand snapshot");
+export function restoreOfcHandSnapshot(snapshot: unknown): OfcHandState {
+  if (!isRecord(snapshot) || snapshot.schemaVersion !== 1) {
+    throw new UnsupportedVersionError(
+      "ofc-hand-snapshot",
+      isRecord(snapshot) ? snapshot.schemaVersion : undefined,
+      [1],
+    );
   }
-  return deepFreeze(structuredClone(snapshot.state));
+  const state = snapshot.state;
+  if (
+    !isRecord(state) ||
+    state.schemaVersion !== 1 ||
+    snapshot.gameId !== state.gameId ||
+    snapshot.revision !== state.revision
+  ) {
+    throw new InvalidSnapshotError(
+      "ofc-hand-snapshot",
+      "metadata does not match the embedded state",
+    );
+  }
+  return deepFreeze(structuredClone(state) as unknown as OfcHandState);
 }
 
 export function nextDealerSeat(

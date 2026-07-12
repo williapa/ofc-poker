@@ -81,3 +81,17 @@ Requirement references: R4 standard OFC scoring and Fantasyland rules, R5 two-to
 - Added exhaustive table-driven tests for royalty classes and boundaries, legality, fouls, ties, scoops, multiplayer totals, round validation, and Fantasyland conditions.
 
 Requirements R4, R5, and R10 remain open because lobby/game integration and unit coverage for later features are not yet implemented.
+
+## 6. Harden and document the game engine
+
+Status: complete (2026-07-12)
+
+Requirement references: R4 standard OFC multi-hand continuity and persistence, R5 two-to-four-player invariants, and R10 engine unit and generated testing.
+
+- Added immutable multi-hand match state with cumulative zero-sum scores, completed-hand history, clockwise dealer rotation, and Fantasyland entry/re-entry continuity.
+- Added version-1 hand and match snapshot restoration with typed, actionable unsupported-version and invalid-snapshot failures; unsupported event versions now have a distinct typed rejection code.
+- Added deterministic generated testing across 72 seeded two-to-four-player hands covering unique cards, exact row capacities, full event replay, identical resolution, and zero-sum scoring.
+- Documented every public engine API group with lifecycle, replay, scoring, match, immutability, and snapshot compatibility examples in `packages/game-engine/README.md`.
+- Added an independently runnable V8 coverage gate with minimum thresholds of 90% statements, 85% branches, 95% functions, and 90% lines.
+
+Requirements R4, R5, and R10 remain open because the lobby runner and remaining product features are not yet implemented or covered.
