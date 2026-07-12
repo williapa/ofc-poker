@@ -95,3 +95,18 @@ Requirement references: R4 standard OFC multi-hand continuity and persistence, R
 - Added an independently runnable V8 coverage gate with minimum thresholds of 90% statements, 85% branches, 95% functions, and 90% lines.
 
 Requirements R4, R5, and R10 remain open because the lobby runner and remaining product features are not yet implemented or covered.
+
+## 7. Define the data-provider contract and local provider
+
+Status: complete (2026-07-12)
+
+Requirement references: R2 lobby transport foundation, R5 two-to-four-player capacity, R6 local AI transport foundation, R8 fixed lobby rules, R10 provider unit tests, and R12 quota-free local provider.
+
+- Expanded the rules-neutral provider contract with provider-assigned trusted identities, connected/disconnected presence, typed validation results, host-only activation and publication, temporary disconnect, permanent leave, and typed lifecycle errors.
+- Implemented a complete in-memory `LocalDataProvider` with fixed deeply immutable settings, deterministic injectable IDs, optional latency/failure hooks, two-to-four-seat capacity, reserved reconnect seats, late-join/reconnect snapshot replay, and no browser, network, Playroom, or credential dependency.
+- Made action requests, validation results, and authoritative events idempotent; enforced monotonic authoritative revisions and safe repeatable subscription/connection/provider cleanup.
+- Applied the documented no-host-migration policy: host departure closes the lobby, while peer disconnect preserves identity and seat until reconnect or permanent leave.
+- Added a reusable provider contract suite plus local-only tests covering capacity, missing/closed rooms, authority, invalid lifecycle, duplicate delivery, reconnect, late join, cleanup, deterministic IDs, latency, failures, and JSON boundaries.
+- Documented the public provider behavior and local adapter test hooks in `packages/data-provider/README.md`.
+
+Requirement R12 is complete. R2, R5, R6, R8, and R10 remain open until their client, runner, AI, and whole-product acceptance criteria are implemented and tested.

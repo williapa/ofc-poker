@@ -1,0 +1,16 @@
+# Prompt 7 - Define the data-provider contract and local provider
+
+## Goal
+
+Implement a transport-neutral data-provider package and a complete in-memory/local provider for development, testing, and AI-only play. The provider must communicate lobby metadata, immutable settings, player presence, validated action requests, authoritative snapshots/events, and lifecycle changes without knowing OFC rules.
+
+## Acceptance criteria
+
+- The contract covers create, join, leave/disconnect, subscribe, submit action, publish authoritative state, and dispose/cleanup behavior.
+- Lobby settings and capacity are fixed after creation and exposed read-only to joiners.
+- The local provider supports two to four simulated clients in one process/test environment, with deterministic IDs and optional injected latency/error hooks.
+- Duplicate actions/events are idempotent and subscriptions can be safely removed.
+- Capacity, missing lobby, invalid lifecycle, host departure, reconnect, and late-join snapshot behavior match the architecture decision.
+- Contract tests are reusable against any provider implementation.
+- Local-provider tests use no network and no Playroom dependency or service credentials.
+- Package lint, type-check, tests, and build pass.

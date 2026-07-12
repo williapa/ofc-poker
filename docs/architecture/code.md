@@ -36,14 +36,14 @@ The same configuration, initial inputs, and ordered accepted actions must always
 
 ## Provider contract
 
-The rules-neutral contract is in `packages/data-provider/src/index.ts`. `DataProvider` creates, joins, or reconnects to a lobby and yields a `LobbyConnection`. A connection exposes immutable lobby metadata, the trusted participant identity and role, action submission, host-only authoritative publication, subscription cleanup, disconnect, and disposal.
+The rules-neutral contract is in `packages/data-provider/src/index.ts`. `DataProvider` creates, joins, or reconnects to a lobby and yields a `LobbyConnection`. Callers supply an untrusted display profile and the provider assigns the trusted participant ID and reconnect capability. A connection exposes immutable lobby metadata, participant presence and role, action submission, host-only validation results, authoritative publication and activation, subscription cleanup, temporary disconnect, permanent leave, and disposal.
 
 Two adapters implement the same interface:
 
-- `LocalDataProvider` will keep all rooms in memory and make no network or Playroom calls. AI-only games must select this adapter at the composition root.
+- `LocalDataProvider` keeps all rooms in memory and makes no network or Playroom calls. It provides deterministic injectable IDs, latency, and failure hooks for tests. AI-only games must select this adapter at the composition root.
 - `PlayroomDataProvider` will translate the contract to Playroom APIs. Playroom-specific values must not escape the adapter.
 
-Adapters transport opaque JSON snapshots/events and do not validate OFC rules. Reusable provider contract tests will be run against both adapters. Provider methods reject missing/full/closed lobbies and illegal lifecycle operations with typed errors when the adapters are implemented.
+Adapters transport opaque JSON actions, validation results, snapshots, and events and do not validate OFC rules. Reusable provider contract tests are run against the local adapter and will also be run against the Playroom adapter. Provider methods reject missing/full/closed lobbies and illegal lifecycle operations with typed errors.
 
 ## AI contract
 

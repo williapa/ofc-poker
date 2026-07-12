@@ -13,5 +13,5 @@ When the requirements are met the project is done.
 9. [ ] game view is a minimal, 3D UI of the card game
 10. [ ] unit tests for all features
 11. [ ] end to end tests with playwright for features
-12. [ ] support a local version of data-provider for testing & development that does not spend service quotas.
+12. [x] support a local version of data-provider for testing & development that does not spend service quotas.
 13. [ ] app deploys via github actions as a github repository page
