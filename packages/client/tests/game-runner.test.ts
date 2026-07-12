@@ -132,6 +132,52 @@ function withDuplicateAndDelayedUpdates(
   };
 }
 
+function withInvalidSnapshotBeforeValidUpdate(
+  connection: OfcLobbyConnection,
+): OfcLobbyConnection {
+  return {
+    get lobby() {
+      return connection.lobby;
+    },
+    get participant() {
+      return connection.participant;
+    },
+    get role() {
+      return connection.role;
+    },
+    get reconnectToken() {
+      return connection.reconnectToken;
+    },
+    submitAction: (request) => connection.submitAction(request),
+    publishActionResult: (result) => connection.publishActionResult(result),
+    publishAuthoritative: (update) => connection.publishAuthoritative(update),
+    activateLobby: () => connection.activateLobby(),
+    subscribe(listener) {
+      let injected = false;
+      return connection.subscribe((message) => {
+        if (message.type === "authoritative-update" && !injected) {
+          injected = true;
+          listener({
+            ...message,
+            update: {
+              ...message.update,
+              eventId: `${message.update.eventId}:invalid`,
+              snapshot: {
+                ...message.update.snapshot,
+                revision: message.update.snapshot.revision + 1,
+              },
+            },
+          });
+        }
+        listener(message);
+      });
+    },
+    disconnect: () => connection.disconnect(),
+    leave: () => connection.leave(),
+    dispose: () => connection.dispose(),
+  };
+}
+
 const aliceBoard = {
   front: "Qc Qd 2c",
   middle: "2h 3h 4h 5h 6h",
@@ -350,6 +396,40 @@ describe("OFC game runner", () => {
     expect(results.every(({ accepted }) => !accepted)).toBe(true);
     expect(hostView.latest.state?.revision).toBe(0);
     unsubscribe();
+    await peerRunner.dispose();
+    await hostRunner.dispose();
+  });
+
+  test("rejects an invalid snapshot and accepts the following valid update", async () => {
+    const transport = provider();
+    const hostConnection = (await transport.createLobby(settings, {
+      displayName: "Alice",
+    })) as OfcLobbyConnection;
+    const hostRunner = createOfcGameRunner({
+      connection: hostConnection,
+      view: new FakeView(),
+      deckForHand: qualifyingDeck,
+    });
+    await hostRunner.start();
+    const peerConnection = (await transport.joinLobby(hostConnection.lobby.id, {
+      displayName: "Bob",
+    })) as OfcLobbyConnection;
+    const peerView = new FakeView();
+    const peerRunner = createOfcGameRunner({
+      connection: withInvalidSnapshotBeforeValidUpdate(peerConnection),
+      view: peerView,
+      deckForHand: qualifyingDeck,
+    });
+
+    await peerRunner.start();
+    await vi.waitFor(() => expect(peerView.latest.state?.revision).toBe(0));
+    expect(
+      peerView.models.some(({ error }) =>
+        error?.includes("snapshot metadata is invalid"),
+      ),
+    ).toBe(true);
+    expect(peerView.latest.error).toBeUndefined();
+
     await peerRunner.dispose();
     await hostRunner.dispose();
   });

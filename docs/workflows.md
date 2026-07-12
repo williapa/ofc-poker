@@ -50,6 +50,7 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm test
+npm run test:coverage
 npm run build
 npm run test:e2e
 ```
@@ -67,7 +68,15 @@ npm run test:coverage --workspace @ofcpoker/game-engine
 
 Replace the workspace name with `@ofcpoker/data-provider`, `@ofcpoker/ai-player`, or `@ofcpoker/client` as needed. Install Playwright's Chromium browser once on a new development machine with `npx playwright install chromium` before running E2E tests.
 
-The engine coverage command uses V8 coverage and enforces minimums of 90% statements, 85% branches, 95% functions, and 90% lines. Coverage output is generated under `packages/game-engine/coverage` and is ignored by git.
+The root coverage command runs V8 coverage gates for every package. Thresholds
+and exclusions are justified in `docs/test-traceability.md`; coverage output is
+generated in each package's `coverage` directory and is ignored by git. The
+GitHub Actions quality workflow runs format, lint, type-check, coverage, and the
+production build on pushes and pull requests.
+
+The client build uses an explicit 1,100 kB minified chunk warning budget. This
+covers the current separate Three.js and lazy Playroom dependency boundaries
+while preserving a failing warning if either boundary grows materially.
 
 Playroom provider contract tests use an in-memory fake SDK boundary and consume
 no Playroom quota. The optional real-service, two-browser sandbox procedure and

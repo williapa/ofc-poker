@@ -17,6 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run build:packages && npm run test --workspaces",
+    "test:coverage": "npm run build:packages && npm run test:coverage --workspaces",
     "test:e2e": "playwright test"
   },
   "engines": {
@@ -31,6 +32,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.13.3",
     "@vitest/coverage-v8": "^3.2.7",
+    "axe-core": "^4.12.1",
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",

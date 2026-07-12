@@ -255,3 +255,29 @@ R10 adapter/client integration coverage, and R11 multiplayer journey coverage.
 No product requirement is newly marked complete: real-service behavior remains
 covered by the documented manual smoke test rather than CI, and the final
 whole-product/deployment prompts still need to close the aggregate requirements.
+
+## 16. Expand unit, integration, accessibility, and resilience coverage
+
+Status: complete (2026-07-12)
+
+Requirement references: R1–R13 traceability, R4 rules regression coverage, R10
+whole-product unit/integration quality, and R11 accessibility foundations.
+
+- Added requirement, OFC-rule, package-boundary, resilience, and accessibility
+  traceability for every implemented feature and the remaining deployment gap.
+- Added automated serious/critical accessibility scans for home, waiting-room,
+  active-game, and showdown states while retaining focused semantic and keyboard
+  assertions.
+- Added malformed authoritative-snapshot recovery coverage alongside existing
+  deterministic latency, failure, duplicate, out-of-order, reconnect, disposal,
+  SDK failure, and WebGL fallback cases.
+- Added justified V8 coverage gates to the AI, provider, and client packages and
+  a root command that enforces every package gate.
+- Added a GitHub Actions quality workflow for format, lint, type-check, coverage,
+  and production-build verification without service credentials or quota use.
+- Confirmed the suite has no skipped/focused tests or arbitrary sleeps and uses
+  deterministic decks, IDs, seeded random sources, in-memory transports, and
+  fake time where timing behavior matters.
+
+R10 is complete. R11 remains open for the broader browser journey automation in
+the next prompt; R13 remains open until GitHub Pages deployment is implemented.

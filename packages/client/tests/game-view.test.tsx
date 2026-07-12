@@ -10,6 +10,7 @@ import { describe, expect, test, vi } from "vitest";
 import type { GameViewModel, GameViewPlayer } from "../src/contracts/game-view";
 import { GameTableView } from "../src/game-view/GameTableView";
 import { createCameraLayout, createSeatLayout } from "../src/game-view/layout";
+import { expectNoCriticalAccessibilityViolations } from "./setup";
 
 function players(count: 2 | 3 | 4): readonly GameViewPlayer[] {
   return Array.from({ length: count }, (_, seat) => ({
@@ -443,4 +444,67 @@ test("announces AI thinking from runner state without consulting a clock", () =>
 
   expect(screen.getByText("Player 2 is thinking…")).toBeVisible();
   expect(screen.getByText("Thinking…")).toBeVisible();
+});
+
+test.each([
+  ["waiting room", { phase: "waiting", isLocalTurn: false, legalActions: [] }],
+  ["active game", {}],
+] as const)(
+  "has no critical accessibility violations in the %s",
+  async (_name, overrides) => {
+    const { container } = render(
+      <GameTableView
+        model={model(2, overrides)}
+        onAction={() => undefined}
+        webglSupported={false}
+      />,
+    );
+
+    await expectNoCriticalAccessibilityViolations(container);
+  },
+);
+
+test("has no critical accessibility violations at showdown", async () => {
+  const round = resolveOfcRound([
+    {
+      playerId: "player-0",
+      board: {
+        front: ["Qc", "Qd", "2c"],
+        middle: ["2h", "3h", "4h", "5h", "6h"],
+        back: ["Ts", "Js", "Qs", "Ks", "As"],
+      },
+      wasInFantasyland: false,
+    },
+    {
+      playerId: "player-1",
+      board: {
+        front: ["Kc", "Kd", "3c"],
+        middle: ["4c", "5c", "6c", "7c", "8c"],
+        back: ["Th", "Jh", "Qh", "Kh", "Ah"],
+      },
+      wasInFantasyland: false,
+    },
+  ]);
+  const state = visibleState(2);
+  const { container } = render(
+    <GameTableView
+      model={model(2, {
+        phase: "complete",
+        isLocalTurn: false,
+        state: {
+          ...state,
+          phase: "complete",
+          privateData: { pendingCards: [] },
+        },
+        legalActions: [],
+        showdown: round,
+        canStartNextHand: true,
+      })}
+      onAction={() => undefined}
+      onStartNextHand={() => undefined}
+      webglSupported={false}
+    />,
+  );
+
+  await expectNoCriticalAccessibilityViolations(container);
 });

@@ -10,6 +10,7 @@ import { App } from "../src/App";
 import type { ClientDataProvider, ProviderFactory } from "../src/providers";
 import type { OfcRunnerSnapshot } from "../src/contracts/game-runner";
 import { createMemoryLobbySessionStore } from "../src/reconnect";
+import { expectNoCriticalAccessibilityViolations } from "./setup";
 
 type TestProvider = LocalDataProvider<
   OfcHandAction,
@@ -62,6 +63,17 @@ test("renders accessible typed defaults without initializing a provider", () => 
 
   fireEvent.click(screen.getByRole("radio", { name: /Local AI/ }));
   expect(factory.create).not.toHaveBeenCalled();
+});
+
+test("has no critical accessibility violations on the home screen", async () => {
+  const { container } = render(
+    <App
+      providerFactory={factoryFor(localProvider())}
+      initialUrl="https://example.test/ofcpoker/"
+    />,
+  );
+
+  await expectNoCriticalAccessibilityViolations(container);
 });
 
 test("validates the display name inline and moves focus to provider errors", async () => {
