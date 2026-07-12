@@ -140,3 +140,18 @@ Requirement references: R7 internally configurable AI players and R10 AI unit an
 - Documented the public AI API, presets, parameters, dependency injection, legal-action flow, and Fantasyland helper.
 
 R7 is complete. R10 remains open until all remaining product features are implemented and covered.
+
+## 10. Implement the app shell, settings form, and static routing
+
+Status: complete (2026-07-12)
+
+Requirement references: R1 static browser client, R2 shareable lobby links, R3 lobby settings form, R5 two-to-four-player configuration, R6 quota-free local AI selection, R8 fixed lobby rules, R10 component/unit coverage, and R11 browser coverage.
+
+- Replaced the placeholder shell with a responsive, semantic pre-game experience for display name, local AI or multiplayer mode, two-to-four-player count, and the fixed standard-OFC rules.
+- Added typed defaults and pure validation for display names, supported seat counts, and immutable lobby settings, with inline errors, error focus, route-change focus, labels, fieldsets, and keyboard-native controls.
+- Added query-string parsing and link construction that retain the current repository pathname, reject malformed or duplicated lobby identifiers, and clear stale query/hash state when returning home.
+- Wired provider selection through an injected composition-root factory. Local AI uses the in-memory provider, while the Playroom adapter is dynamically imported only after a multiplayer create or join submission.
+- Added create and join flows, helpful provider errors, share-link display, and a read-only lobby summary with no controls suggesting that settings can be changed.
+- Added unit/component coverage for defaults, validation, provider failures, local and multiplayer create flows, static routing, join behavior, invalid and missing lobbies, immutable settings, and the no-eager-provider guarantee; expanded Playwright coverage for local creation and invalid links.
+
+R1–R3, R5, R6, R8, R10, and R11 remain open until the later game runner, full user journey, deployment, and remaining feature coverage are complete.

@@ -31,6 +31,18 @@ npm run dev
 
 The command builds public declarations for domain packages, then starts the Vite client. Vite prints the local URL.
 
+Local AI lobby creation needs no credentials or network service. To create or join
+real multiplayer lobbies from the client, expose the public Playroom game ID to
+Vite before starting or building the client:
+
+```sh
+VITE_PLAYROOM_GAME_ID=your-public-game-id npm run dev
+```
+
+Without this value, the home page and local AI flow remain fully available and a
+multiplayer submission shows a configuration error. The Playroom module is loaded
+only when a multiplayer create or join is submitted.
+
 ## Verification
 
 ```sh
