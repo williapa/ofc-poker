@@ -171,3 +171,18 @@ Requirement references: R2 multiplayer lobby coordination, R4 multi-hand OFC con
 - Added local-provider/fake-view integration coverage for waiting and activation, peer non-authority, full deterministic play, trusted identity, duplicate and delayed delivery, reconnect/remount, AI turns, cancellation, and idempotent cleanup.
 
 No product requirement is newly marked complete: the runner is the coordination foundation for the later 3D/human interaction, complete local AI, multiplayer UI, and end-to-end prompts.
+
+## 12. Establish the minimal 3D game-view design system
+
+Status: complete (2026-07-12)
+
+Requirement references: R4 standard OFC board presentation, R5 two-to-four-seat layouts, R9 minimal 3D UI, and R10 rendering/component tests.
+
+- Added a typed React Three Fiber game view behind the existing view-model/action boundary, with no reducer or provider SDK imports.
+- Defined stable local-seat layouts for two through four seats, responsive orthographic camera framing, felt geometry, restrained lighting, design tokens, and reduced-motion behavior.
+- Added legible generated rank/suit card faces, consistent Fantasyland card backs, selected-card treatment, and valid/unavailable target states.
+- Added an accessible DOM overlay for status, scores, row labels and `3 / 5 / 5` capacities, public and hidden card information, errors, and keyboard-native controls.
+- Added WebGL feature detection, render-error containment, and a fallback that preserves the DOM game surface.
+- Added deterministic component and layout tests for every seat count, camera behavior, row semantics, card/action semantics, Fantasyland privacy, configured open seats, and fallback behavior.
+
+R9 and R10 remain open until the game view is connected to the complete application journey and the remaining product features are implemented and tested end to end.
