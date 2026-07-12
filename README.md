@@ -3,6 +3,12 @@
 ## Summary
 Browser implementation of multiplayer Open-Face Chinese Poker, a 2-4 player card game where players create 3 poker hands from 13 cards, dealt face-up, to score points. Create a lobby and invite friends with a link. Play games right away with no account required. 
 
+The implementation uses four npm workspaces: a React + Vite client, a deterministic game engine, configurable AI players, and a transport-neutral data provider. See `docs/architecture/code.md` for dependency rules and `docs/workflows.md` for current commands.
+
+## Agents.md
+
+Instructions to be included with all agent prompts.
+
 ## Docs structure
 
 ### reference/
@@ -32,7 +38,6 @@ Units of work accomplished in logical steps, referencing a requirement #.
 ### plan/
 
 Outline of prompts for completing the project requirements.
-
 
 
 

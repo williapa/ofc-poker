@@ -1,0 +1,24 @@
+{
+  "name": "ofcpoker",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/client",
+    "packages/game-engine",
+    "packages/ai-player",
+    "packages/data-provider"
+  ],
+  "scripts": {
+    "dev": "npm run build:packages && npm run dev --workspace @ofcpoker/client",
+    "build:packages": "npm run build --workspace @ofcpoker/game-engine && npm run build --workspace @ofcpoker/data-provider && npm run build --workspace @ofcpoker/ai-player",
+    "build": "npm run build:packages && npm run build --workspace @ofcpoker/client",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:packages && npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": "^20.0.0 || >=22.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
