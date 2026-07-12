@@ -154,4 +154,20 @@ Requirement references: R1 static browser client, R2 shareable lobby links, R3 l
 - Added create and join flows, helpful provider errors, share-link display, and a read-only lobby summary with no controls suggesting that settings can be changed.
 - Added unit/component coverage for defaults, validation, provider failures, local and multiplayer create flows, static routing, join behavior, invalid and missing lobbies, immutable settings, and the no-eager-provider guarantee; expanded Playwright coverage for local creation and invalid links.
 
-R1–R3, R5, R6, R8, R10, and R11 remain open until the later game runner, full user journey, deployment, and remaining feature coverage are complete.
+R1–R3, R5, R6, R8, R10, and R11 remain open until the full user journey, deployment, and remaining feature coverage are complete.
+
+## 11. Implement the game runner and lobby lifecycle
+
+Status: complete (2026-07-12)
+
+Requirement references: R2 multiplayer lobby coordination, R4 multi-hand OFC continuity, R5 two-to-four-seat lifecycle, R6 local AI coordination, R8 fixed lobby rules, and R10 runner unit/integration tests.
+
+- Added a client-owned OFC runner that owns one lobby connection and view subscription, starts idempotently, and performs repeatable leave or reconnect-preserving cleanup.
+- Enforced capacity and connected-seat start rules for two-to-four human and/or configured AI seats, with host-only deck creation, lobby activation, engine validation, and authoritative publication.
+- Routed human provider requests and configured AI decisions through one trusted-sender engine command path; untrusted action player IDs are replaced with provider or configured AI identity.
+- Added a monotonic match-wide authority revision and snapshot envelope around engine hand and match state so duplicate, delayed, reconnect, and cross-hand updates cannot double-apply or regress state.
+- Expanded the read-only view model with waiting/placing/complete/closed phase, local connection and turn state, legal actions, seats and presence, cumulative scores, dealer, Fantasyland status, next-hand availability, and actionable errors.
+- Added host-only next-hand transitions that retain match totals and Fantasyland qualification, rotate the dealer, inject a fresh deterministic deck, and publish the new hand without resetting transport authority.
+- Added local-provider/fake-view integration coverage for waiting and activation, peer non-authority, full deterministic play, trusted identity, duplicate and delayed delivery, reconnect/remount, AI turns, cancellation, and idempotent cleanup.
+
+No product requirement is newly marked complete: the runner is the coordination foundation for the later 3D/human interaction, complete local AI, multiplayer UI, and end-to-end prompts.

@@ -1,27 +1,65 @@
-import type { AiPlayer } from "@ofcpoker/ai-player";
-import type { DataProvider } from "@ofcpoker/data-provider";
+import type { AiConfiguration, AiPlayer } from "@ofcpoker/ai-player";
+import type { LobbyConnection } from "@ofcpoker/data-provider";
 import type {
-  DeterministicGameEngine,
-  EngineAction,
+  CardCode,
   EngineSnapshot,
-  GameEvent,
+  JsonValue,
+  OfcHandAction,
+  OfcHandEvent,
+  OfcHandState,
+  OfcMatchState,
+  OfcPlayerVisibleState,
 } from "@ofcpoker/game-engine";
 import type { GameView } from "./game-view";
 
-export interface GameRunnerDependencies<
-  TState,
-  TAction extends EngineAction,
-  TEvent extends GameEvent,
-  TSnapshot extends EngineSnapshot,
+export interface OfcRunnerSnapshotState extends Readonly<
+  Record<string, JsonValue>
 > {
-  readonly engine: DeterministicGameEngine<TState, TAction, TEvent, TSnapshot>;
-  readonly provider: DataProvider<TAction, TSnapshot, TEvent>;
-  readonly aiPlayers: readonly AiPlayer<TAction>[];
-  readonly view: GameView;
+  readonly authorityRevision: number;
+  readonly match: OfcMatchState & JsonValue;
+  readonly hand: OfcHandState & JsonValue;
 }
 
-/** Client-owned coordinator. Exactly one runner owns an active lobby and all its cleanup. */
+export interface OfcRunnerSnapshot extends EngineSnapshot<OfcRunnerSnapshotState> {
+  readonly state: OfcRunnerSnapshotState;
+}
+
+export type OfcLobbyConnection = LobbyConnection<
+  OfcHandAction,
+  OfcRunnerSnapshot,
+  OfcHandEvent
+>;
+
+export interface RunnerAiSeat {
+  readonly player: AiPlayer<OfcHandAction, OfcPlayerVisibleState>;
+  readonly displayName: string;
+  readonly configuration: AiConfiguration;
+}
+
+export interface GameRunnerDependencies {
+  readonly connection: OfcLobbyConnection;
+  readonly aiSeats?: readonly RunnerAiSeat[];
+  readonly view: GameView;
+  /** Host-only deterministic deck source, called exactly once per hand. */
+  readonly deckForHand: (handNumber: number) => readonly CardCode[];
+  readonly initialDealerSeat?: number;
+  readonly idFactory?: (kind: "action" | "update", sequence: number) => string;
+  /** Use disconnect for a remountable session; leave permanently exits the seat. */
+  readonly disposeMode?: "disconnect" | "leave";
+}
+
+/** Client-owned coordinator. Exactly one runner owns an active lobby connection. */
 export interface GameRunner {
   start(): Promise<void>;
+  startNextHand(): Promise<boolean>;
+  dispose(): Promise<void>;
+}
+
+/** Composition-root owner that guarantees one runner for the selected lobby. */
+export interface GameRunnerLifecycle {
+  activate(
+    lobbyId: string,
+    createRunner: () => GameRunner,
+  ): Promise<GameRunner>;
   dispose(): Promise<void>;
 }

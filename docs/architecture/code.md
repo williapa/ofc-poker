@@ -55,6 +55,8 @@ The client owns one `GameRunner` for one active lobby. It is the composition roo
 
 `GameView` receives a read-only `GameViewModel`, emits ordinary engine actions, and supports disposal. The React Three Fiber view is one adapter. An accessible DOM or alternate 2D view can implement the same port without engine/provider changes. The engine and provider never import the view.
 
+The concrete OFC runner wraps the current hand and multi-hand match in one authoritative snapshot. Its transport revision is monotonic for the lifetime of the lobby even though each engine hand begins at revision zero. Only the host creates decks, advances match state, or publishes this envelope. Human requests use provider-assigned sender identity, while configured local AI seats use their registered identity; both enter the same runner validation function before the engine transition. A view receives only its player projection and engine-enumerated legal actions.
+
 ## Configuration ownership
 
 The lobby form produces candidate settings, but lobby creation validates them and copies them into new immutable `LobbySettings`. The host then derives the engine's immutable `GameConfiguration` from that copy. Joiners receive the stored settings; no update-settings operation exists. Starting another hand retains the configuration. Changing rules or seat count requires a new lobby.
