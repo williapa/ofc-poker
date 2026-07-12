@@ -115,3 +115,28 @@ export interface DeterministicGameEngine<
   playerView(state: TState, playerId: PlayerId): PlayerVisibleState;
   legalActions(state: TState, playerId: PlayerId): readonly TAction[];
 }
+
+export {
+  RANKS,
+  SUITS,
+  createCard,
+  parseCard,
+  rankValue,
+  serializeCard,
+  type Card,
+  type CardCode,
+  type Rank,
+  type Suit,
+} from "./cards";
+export { createStandardDeck, shuffleDeck, type RandomSource } from "./deck";
+export {
+  compareHandEvaluations,
+  evaluateFiveCardHand,
+  evaluateThreeCardHand,
+  type ComparisonResult,
+  type FiveCardEvaluation,
+  type FiveCardHandClass,
+  type HandEvaluation,
+  type ThreeCardEvaluation,
+  type ThreeCardHandClass,
+} from "./poker";

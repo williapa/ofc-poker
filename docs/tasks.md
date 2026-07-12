@@ -30,7 +30,7 @@ Requirement references: R1 static client foundation, R10 unit-test foundation, a
 
 Requirements R10 and R11 remain open because the scaffold does not yet test features that will be implemented in later tasks.
 
-## 3. Standardize the development runtime on Node.js 24
+## 2a. Standardize the development runtime on Node.js 24
 
 Status: complete (2026-07-11)
 
@@ -39,3 +39,16 @@ Requirement references: R1–R13 development-tooling foundation.
 - Pinned Node.js 24.18.0 for nvm and constrained package engines to Node.js 24 with npm 11.
 - Reinstalled workspace dependencies under Node.js 24 and refreshed the root lockfile runtime metadata.
 - Updated development and clean-install documentation with the nvm selection workflow.
+
+## 3. Build card, deck, and poker-hand primitives
+
+Status: complete (2026-07-11)
+
+Requirement references: R4 standard OFC hand evaluation foundation and R10 unit tests.
+
+- Added canonical immutable card values with strict compact parsing and serialization.
+- Added a validated standard 52-card deck, caller-supplied deterministic order, and Fisher-Yates shuffling with an injected random source.
+- Added immutable, JSON-serializable three-card and five-card evaluations with shared comparison keys, complete kicker rules, wheel straights, identifiable royal flushes, and suit-independent ties.
+- Added table-driven tests for all hand classes, front-row exceptions, important kickers, exact ties, invalid hands, deck integrity, and deterministic shuffling.
+
+Requirements R4 and R10 remain open because full OFC gameplay and unit coverage for later features are not yet implemented.
