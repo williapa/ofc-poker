@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./playroom": {
+      "types": "./dist/playroom/index.d.ts",
+      "default": "./dist/playroom/index.js"
     }
   },
   "files": [
@@ -17,5 +21,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "playroomkit": "^0.0.97"
   }
 }

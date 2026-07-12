@@ -57,6 +57,11 @@ Replace the workspace name with `@ofcpoker/data-provider`, `@ofcpoker/ai-player`
 
 The engine coverage command uses V8 coverage and enforces minimums of 90% statements, 85% branches, 95% functions, and 90% lines. Coverage output is generated under `packages/game-engine/coverage` and is ignored by git.
 
+Playroom provider contract tests use an in-memory fake SDK boundary and consume
+no Playroom quota. The optional real-service, two-browser sandbox procedure and
+its public game-ID setup are documented in `packages/data-provider/README.md`.
+Account credentials and reconnect tokens must not be committed.
+
 Generated `dist`, TypeScript build-info, coverage, and browser-test artifacts are ignored by git.
 
 ## Deployment

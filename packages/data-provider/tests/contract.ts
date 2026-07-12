@@ -17,7 +17,7 @@ type TestConnection = LobbyConnection<TestAction, TestSnapshot, TestEvent>;
 const settings = (seatCount: 2 | 3 | 4 = 2): LobbySettings => ({
   schemaVersion: 1,
   seatCount,
-  mode: "local-ai",
+  mode: "multiplayer",
   rules: { fantasyland: true, tiedRows: 0 },
 });
 

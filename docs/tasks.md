@@ -110,3 +110,17 @@ Requirement references: R2 lobby transport foundation, R5 two-to-four-player cap
 - Documented the public provider behavior and local adapter test hooks in `packages/data-provider/README.md`.
 
 Requirement R12 is complete. R2, R5, R6, R8, and R10 remain open until their client, runner, AI, and whole-product acceptance criteria are implemented and tested.
+
+## 8. Implement and contract-test the Playroom provider
+
+Status: complete (2026-07-12)
+
+Requirement references: R2 shareable multiplayer lobby transport, R5 two-to-four-player capacity, R8 fixed lobby rules, and R10 provider unit/contract tests.
+
+- Installed and verified Playroom Kit 0.0.97, isolating all SDK imports and concepts inside the Playroom boundary and adapter.
+- Added a host-authoritative Playroom protocol with SDK-derived sender identity, host-only publication, idempotent requests/updates, monotonic revisions, capacity and activation enforcement, reserved reconnect seats, snapshot replay, and the documented no-host-migration policy.
+- Added repeatable listener/session cleanup, one-session browser initialization protection, and repository-page-safe `?lobby=` share-link generation that never includes reconnect capabilities.
+- Ran the reusable provider contract against an in-memory fake Playroom boundary and added adapter-specific configuration, initialization, link, and settings tests without spending service quota.
+- Documented the verified SDK surface, public game-ID configuration, security boundaries, and manual two-browser sandbox procedure.
+
+R2, R5, R8, and R10 remain open until the client runner and complete product acceptance criteria are implemented and tested. No requirement is newly marked complete by this provider-only task.
