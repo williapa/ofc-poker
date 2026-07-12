@@ -1,8 +1,6 @@
 export type JsonPrimitive = boolean | number | string | null;
 export type JsonValue =
-  | JsonPrimitive
-  | readonly JsonValue[]
-  | { readonly [key: string]: JsonValue };
+  JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
 export type PlayerId = string;
 export type GameId = string;

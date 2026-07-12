@@ -12,7 +12,9 @@ export interface AiConfiguration {
   readonly foulAvoidance: number;
 }
 
-export interface AiDecisionContext<TAction extends EngineAction = EngineAction> {
+export interface AiDecisionContext<
+  TAction extends EngineAction = EngineAction,
+> {
   readonly playerId: PlayerId;
   readonly state: PlayerVisibleState;
   readonly legalActions: readonly TAction[];

@@ -1,8 +1,6 @@
 export type JsonPrimitive = boolean | number | string | null;
 export type JsonValue =
-  | JsonPrimitive
-  | readonly JsonValue[]
-  | { readonly [key: string]: JsonValue };
+  JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
 export type LobbyId = string;
 export type ParticipantId = string;
@@ -49,10 +47,23 @@ export interface AuthoritativeUpdate<
 
 export type ProviderMessage<TAction, TSnapshot, TEvent> =
   | { readonly type: "lobby"; readonly lobby: LobbyMetadata }
-  | { readonly type: "action-requested"; readonly senderId: ParticipantId; readonly request: ActionRequest<TAction> }
-  | { readonly type: "authoritative-update"; readonly update: AuthoritativeUpdate<TSnapshot, TEvent> }
-  | { readonly type: "participant-disconnected"; readonly participantId: ParticipantId }
-  | { readonly type: "lobby-closed"; readonly reason: "host-left" | "disposed" | "provider-error" };
+  | {
+      readonly type: "action-requested";
+      readonly senderId: ParticipantId;
+      readonly request: ActionRequest<TAction>;
+    }
+  | {
+      readonly type: "authoritative-update";
+      readonly update: AuthoritativeUpdate<TSnapshot, TEvent>;
+    }
+  | {
+      readonly type: "participant-disconnected";
+      readonly participantId: ParticipantId;
+    }
+  | {
+      readonly type: "lobby-closed";
+      readonly reason: "host-left" | "disposed" | "provider-error";
+    };
 
 export interface LobbyConnection<TAction, TSnapshot, TEvent> {
   readonly lobby: LobbyMetadata;
@@ -60,16 +71,29 @@ export interface LobbyConnection<TAction, TSnapshot, TEvent> {
   readonly role: "host" | "peer";
   readonly reconnectToken: string;
   submitAction(request: ActionRequest<TAction>): Promise<void>;
-  publishAuthoritative(update: AuthoritativeUpdate<TSnapshot, TEvent>): Promise<void>;
-  subscribe(listener: (message: ProviderMessage<TAction, TSnapshot, TEvent>) => void): Unsubscribe;
+  publishAuthoritative(
+    update: AuthoritativeUpdate<TSnapshot, TEvent>,
+  ): Promise<void>;
+  subscribe(
+    listener: (message: ProviderMessage<TAction, TSnapshot, TEvent>) => void,
+  ): Unsubscribe;
   disconnect(): Promise<void>;
   dispose(): Promise<void>;
 }
 
 /** Rules-neutral transport port. Generic payloads must be JSON-serializable at the adapter boundary. */
 export interface DataProvider<TAction, TSnapshot, TEvent> {
-  createLobby(settings: LobbySettings, participant: ParticipantIdentity): Promise<LobbyConnection<TAction, TSnapshot, TEvent>>;
-  joinLobby(lobbyId: LobbyId, participant: ParticipantIdentity): Promise<LobbyConnection<TAction, TSnapshot, TEvent>>;
-  reconnectLobby(lobbyId: LobbyId, reconnectToken: string): Promise<LobbyConnection<TAction, TSnapshot, TEvent>>;
+  createLobby(
+    settings: LobbySettings,
+    participant: ParticipantIdentity,
+  ): Promise<LobbyConnection<TAction, TSnapshot, TEvent>>;
+  joinLobby(
+    lobbyId: LobbyId,
+    participant: ParticipantIdentity,
+  ): Promise<LobbyConnection<TAction, TSnapshot, TEvent>>;
+  reconnectLobby(
+    lobbyId: LobbyId,
+    reconnectToken: string,
+  ): Promise<LobbyConnection<TAction, TSnapshot, TEvent>>;
   dispose(): Promise<void>;
 }

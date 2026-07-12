@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "typecheck": "tsc -b --pretty false",
-    "test": "npm run typecheck"
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty false && tsc -p tsconfig.test.json --noEmit --pretty false",
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ofcpoker/ai-player": "0.0.0",

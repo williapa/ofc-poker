@@ -13,12 +13,31 @@
     "build:packages": "npm run build --workspace @ofcpoker/game-engine && npm run build --workspace @ofcpoker/data-provider && npm run build --workspace @ofcpoker/ai-player",
     "build": "npm run build:packages && npm run build --workspace @ofcpoker/client",
     "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
-    "test": "npm run build:packages && npm run test --workspaces --if-present"
+    "lint": "eslint eslint.config.mjs playwright.config.ts tests && npm run lint --workspaces",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run build:packages && npm run test --workspaces",
+    "test:e2e": "playwright test"
   },
   "engines": {
-    "node": "^20.0.0 || >=22.0.0"
+    "node": "^24.0.0",
+    "npm": "^11.0.0"
   },
+  "packageManager": "npm@11.16.0",
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.61.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^24.13.3",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.9.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^3.2.7"
   }
 }

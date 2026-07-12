@@ -17,11 +17,11 @@ This document summarizes the standard rules of Open-Face Chinese Poker (OFC) for
 
 Each player builds three poker hands:
 
-| Row | Cards | Required strength |
-|---|---:|---|
-| Front (top) | 3 | Weakest, or tied for weakest |
-| Middle | 5 | At least as strong as front and no stronger than back |
-| Back (bottom) | 5 | Strongest, or tied for strongest |
+| Row           | Cards | Required strength                                     |
+| ------------- | ----: | ----------------------------------------------------- |
+| Front (top)   |     3 | Weakest, or tied for weakest                          |
+| Middle        |     5 | At least as strong as front and no stronger than back |
+| Back (bottom) |     5 | Strongest, or tied for strongest                      |
 
 A completed legal board therefore satisfies:
 
@@ -164,9 +164,9 @@ Royalties are awarded only on legal boards and are netted pairwise between legal
 
 Pairs of twos through fives earn zero. Pairs of sixes through aces earn one through nine points:
 
-| Pair | 66 | 77 | 88 | 99 | TT | JJ | QQ | KK | AA |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Points | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+| Pair   |  66 |  77 |  88 |  99 |  TT |  JJ |  QQ |  KK |  AA |
+| ------ | --: | --: | --: | --: | --: | --: | --: | --: | --: |
+| Points |   1 |   2 |   3 |   4 |   5 |   6 |   7 |   8 |   9 |
 
 Three of a kind earns ten points for three twos, increasing by one point per rank through twenty-two points for three aces:
 
@@ -176,28 +176,28 @@ Three of a kind earns ten points for three twos, increasing by one point per ran
 
 ### Middle-row royalties
 
-| Hand | Points |
-|---|---:|
-| Three of a kind | 2 |
-| Straight | 4 |
-| Flush | 8 |
-| Full house | 12 |
-| Four of a kind | 20 |
-| Straight flush | 30 |
-| Royal flush | 50 |
+| Hand            | Points |
+| --------------- | -----: |
+| Three of a kind |      2 |
+| Straight        |      4 |
+| Flush           |      8 |
+| Full house      |     12 |
+| Four of a kind  |     20 |
+| Straight flush  |     30 |
+| Royal flush     |     50 |
 
 High card, one pair, and two pair earn no middle-row royalty.
 
 ### Back-row royalties
 
-| Hand | Points |
-|---|---:|
-| Straight | 2 |
-| Flush | 4 |
-| Full house | 6 |
-| Four of a kind | 10 |
-| Straight flush | 15 |
-| Royal flush | 25 |
+| Hand           | Points |
+| -------------- | -----: |
+| Straight       |      2 |
+| Flush          |      4 |
+| Full house     |      6 |
+| Four of a kind |     10 |
+| Straight flush |     15 |
+| Royal flush    |     25 |
 
 High card, one pair, two pair, and three of a kind earn no back-row royalty.
 

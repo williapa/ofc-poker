@@ -2,16 +2,26 @@
 
 ## Prerequisites and install
 
-- Node.js 20 LTS, or Node.js 22 and newer (Node.js 21 is not supported by Vite 6)
-- npm 10 or newer
+- Node.js 24 (the repository pins 24.18.0 in `.nvmrc`)
+- npm 11
 
-From the repository root:
+Select the repository runtime before installing dependencies:
 
 ```sh
-npm install
+nvm install
+nvm use
+node --version
 ```
 
-This installs all four workspaces and updates the single root lockfile. Do not run separate installs in workspace directories.
+The reported version should be `v24.18.0`.
+
+For a clean, lockfile-reproducible install from the repository root:
+
+```sh
+npm ci
+```
+
+Use `npm install` when intentionally adding or updating dependencies. Both commands install all four workspaces through the single root lockfile. Do not run separate installs in workspace directories.
 
 ## Development
 
@@ -24,12 +34,25 @@ The command builds public declarations for domain packages, then starts the Vite
 ## Verification
 
 ```sh
+npm run format:check
+npm run lint
 npm run typecheck
 npm test
 npm run build
+npm run test:e2e
 ```
 
-`typecheck` and `test` build domain packages in dependency order so consumers resolve only declared public exports. During this contracts milestone, workspace `test` scripts perform strict compile-time contract checks; behavioral test tooling and lint/format/E2E gates remain planned work. `build` emits the static client to `packages/client/dist`.
+The aggregate commands fail when any workspace fails. `typecheck` and `test` build domain packages in dependency order so consumers resolve only declared public exports. Vitest runs client component tests in JSDOM and domain package tests in Node. Playwright builds and serves the static client, then runs the browser suite in Chromium. The production build emits the static client to `packages/client/dist`.
+
+Each package can also be checked independently from the repository root:
+
+```sh
+npm run build --workspace @ofcpoker/game-engine
+npm run test --workspace @ofcpoker/game-engine
+npm run lint --workspace @ofcpoker/game-engine
+```
+
+Replace the workspace name with `@ofcpoker/data-provider`, `@ofcpoker/ai-player`, or `@ofcpoker/client` as needed. Install Playwright's Chromium browser once on a new development machine with `npx playwright install chromium` before running E2E tests.
 
 Generated `dist`, TypeScript build-info, coverage, and browser-test artifacts are ignored by git.
 

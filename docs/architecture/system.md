@@ -18,18 +18,18 @@ The provider enforces that only its current host connection may publish authorit
 
 ## Lifecycle policies
 
-| Condition | Required behavior |
-|---|---|
-| Invalid, malformed, stale, unauthorized, or out-of-turn action | Host rejects it without mutation or authoritative event publication; requester receives an actionable error. |
-| Duplicate action request | Host/provider return the prior outcome or ignore it; it is never applied twice. |
-| Duplicate or out-of-order authoritative event | Client deduplicates by event ID/revision; a gap causes snapshot recovery. |
-| Peer disconnect | Seat is reserved for that participant's reconnect token. The game pauses when their action is required. Presence shows disconnected. |
-| Peer reconnect | Provider restores the same trusted participant/seat and immediately sends the latest lobby metadata and authoritative snapshot. |
-| Host disconnect or departure | Lobby closes and all peers return to a terminal `host-left` state. There is no host migration because a new browser cannot prove it has the complete authoritative history. |
-| Lobby reaches configured capacity | Additional joins fail as `lobby-full`; reconnecting reserved participants are not counted as new joins. |
-| Join after game start | New participants are rejected. Spectating is out of scope. A participant with a valid reserved reconnect token may restore their seat. |
-| Late join while waiting and below capacity | Join succeeds and receives fixed settings, current seats/presence, and latest waiting snapshot. |
-| Missing or closed lobby | Join/reconnect fails with a distinct error suitable for the UI. |
+| Condition                                                      | Required behavior                                                                                                                                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Invalid, malformed, stale, unauthorized, or out-of-turn action | Host rejects it without mutation or authoritative event publication; requester receives an actionable error.                                                                |
+| Duplicate action request                                       | Host/provider return the prior outcome or ignore it; it is never applied twice.                                                                                             |
+| Duplicate or out-of-order authoritative event                  | Client deduplicates by event ID/revision; a gap causes snapshot recovery.                                                                                                   |
+| Peer disconnect                                                | Seat is reserved for that participant's reconnect token. The game pauses when their action is required. Presence shows disconnected.                                        |
+| Peer reconnect                                                 | Provider restores the same trusted participant/seat and immediately sends the latest lobby metadata and authoritative snapshot.                                             |
+| Host disconnect or departure                                   | Lobby closes and all peers return to a terminal `host-left` state. There is no host migration because a new browser cannot prove it has the complete authoritative history. |
+| Lobby reaches configured capacity                              | Additional joins fail as `lobby-full`; reconnecting reserved participants are not counted as new joins.                                                                     |
+| Join after game start                                          | New participants are rejected. Spectating is out of scope. A participant with a valid reserved reconnect token may restore their seat.                                      |
+| Late join while waiting and below capacity                     | Join succeeds and receives fixed settings, current seats/presence, and latest waiting snapshot.                                                                             |
+| Missing or closed lobby                                        | Join/reconnect fails with a distinct error suitable for the UI.                                                                                                             |
 
 Reconnect tokens are capabilities and must not appear in share URLs, logs, or authoritative game events. Temporary room data may disappear after every client leaves; durable match storage is out of scope.
 
