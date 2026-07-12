@@ -66,3 +66,18 @@ Requirement references: R4 standard OFC hand lifecycle, R5 two-to-four-player su
 - Added deterministic tests for complete two-, three-, and four-player hands, replay, every placement boundary, turn/deal timing, serialization, privacy projections, snapshots, and dealer rotation.
 
 Requirements R4, R5, and R10 remain open because scoring, Fantasyland, complete game integration, and unit coverage for later features are not yet implemented.
+
+## 5. Complete OFC round resolution and Fantasyland rules
+
+Status: complete (2026-07-12)
+
+Requirement references: R4 standard OFC scoring and Fantasyland rules, R5 two-to-four-player pairwise scoring, and R10 unit tests.
+
+- Added complete-board validation, per-row evaluations, `back >= middle >= front` foul detection with equality, and zero royalties for fouled boards.
+- Implemented every standard front, middle, and back royalty, including distinct royal-flush awards.
+- Added standard 1–6 pair scoring with tied rows, scoops, net royalties, legal-versus-fouled, and both-fouled breakdowns.
+- Added deterministic two-to-four-player round resolution across every unordered pair with per-player deltas and a zero-sum invariant.
+- Added Fantasyland entry and re-entry qualification, simultaneous qualification, placement visibility, and showdown reveal policy.
+- Added exhaustive table-driven tests for royalty classes and boundaries, legality, fouls, ties, scoops, multiplayer totals, round validation, and Fantasyland conditions.
+
+Requirements R4, R5, and R10 remain open because lobby/game integration and unit coverage for later features are not yet implemented.

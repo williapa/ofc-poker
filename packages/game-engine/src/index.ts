@@ -172,3 +172,22 @@ export {
   type PlacementRow,
   type PlayerSetup,
 } from "./hand-lifecycle";
+export {
+  determineFantasyland,
+  evaluateOfcBoard,
+  fantasylandBoardVisibility,
+  resolveOfcRound,
+  scoreOfcPair,
+  type FantasylandBoardVisibility,
+  type FantasylandQualification,
+  type FantasylandResult,
+  type OfcBoardEvaluation,
+  type OfcPairScore,
+  type OfcRoundPlayerInput,
+  type OfcRoundPlayerResult,
+  type OfcRoundResult,
+  type OfcRoyalties,
+  type OfcRowEvaluations,
+  type PairRowResults,
+  type PairScoringKind,
+} from "./scoring";
