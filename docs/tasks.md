@@ -52,3 +52,17 @@ Requirement references: R4 standard OFC hand evaluation foundation and R10 unit 
 - Added table-driven tests for all hand classes, front-row exceptions, important kickers, exact ties, invalid hands, deck integrity, and deterministic shuffling.
 
 Requirements R4 and R10 remain open because full OFC gameplay and unit coverage for later features are not yet implemented.
+
+## 4. Implement the event-driven hand lifecycle
+
+Status: complete (2026-07-12)
+
+Requirement references: R4 standard OFC hand lifecycle, R5 two-to-four-player support, and R10 unit tests.
+
+- Added a pure, deterministic placement lifecycle with injected seats, dealer position, and validated 52-card deck order.
+- Added versioned initial-five and single-card actions, accepted placement events, replay validation, typed action/event rejections, immutable state, and transport-safe snapshots and projections.
+- Implemented clockwise action beginning left of the dealer, five-round initial dealing, turn-time single-card reveals, fixed row capacities, committed-card immutability, and exact `3 / 5 / 5` completion accounting.
+- Added dealer-rotation policy and kept full multi-hand match state out of scope for the later engine-hardening task.
+- Added deterministic tests for complete two-, three-, and four-player hands, replay, every placement boundary, turn/deal timing, serialization, privacy projections, snapshots, and dealer rotation.
+
+Requirements R4, R5, and R10 remain open because scoring, Fantasyland, complete game integration, and unit coverage for later features are not yet implemented.

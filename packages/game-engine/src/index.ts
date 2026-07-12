@@ -74,6 +74,11 @@ export interface EngineSnapshot<TState extends JsonValue = JsonValue> {
 export type ActionRejectionCode =
   | "duplicate-action"
   | "invalid-action"
+  | "hand-complete"
+  | "unknown-card"
+  | "duplicate-card"
+  | "card-already-committed"
+  | "row-full"
   | "stale-revision"
   | "unauthorized-player"
   | "wrong-turn";
@@ -140,3 +145,30 @@ export {
   type ThreeCardEvaluation,
   type ThreeCardHandClass,
 } from "./poker";
+export {
+  applyOfcHandEvent,
+  createOfcHand,
+  createOfcHandSnapshot,
+  nextDealerSeat,
+  ofcHandPlayerView,
+  ofcHandPublicState,
+  restoreOfcHandSnapshot,
+  transitionOfcHand,
+  type CardPlacement,
+  type EventApplication,
+  type EventRejection,
+  type EventRejectionCode,
+  type OfcBoard,
+  type OfcHandAction,
+  type OfcHandEvent,
+  type OfcHandPlayerState,
+  type OfcHandSetup,
+  type OfcHandSnapshot,
+  type OfcHandState,
+  type OfcPlayerVisibleState,
+  type OfcPublicEngineState,
+  type PlaceCardAction,
+  type PlaceInitialCardsAction,
+  type PlacementRow,
+  type PlayerSetup,
+} from "./hand-lifecycle";
