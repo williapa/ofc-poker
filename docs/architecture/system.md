@@ -1,0 +1,3 @@
+# System Architecture
+
+A Next.js client-side app (no SSR) hosted on Github Pages that allows users to create a lobby and invite friends to join them by link. The game session data persistence and the real-time communication layer will be provided by Playroom Kit's free tier (accepting whatever limitations come with the free tier). The client will use react three fiber for a geometric, minimal 3D UI. 
