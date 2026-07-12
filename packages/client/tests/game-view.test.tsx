@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { LobbyMetadata } from "@ofcpoker/data-provider";
-import type {
-  CardCode,
-  OfcHandAction,
-  OfcPlayerVisibleState,
+import {
+  resolveOfcRound,
+  type CardCode,
+  type OfcHandAction,
+  type OfcPlayerVisibleState,
 } from "@ofcpoker/game-engine";
 import { describe, expect, test, vi } from "vitest";
 import type { GameViewModel, GameViewPlayer } from "../src/contracts/game-view";
@@ -150,15 +151,15 @@ test.each([2, 3, 4] as const)(
       />,
     );
 
-    expect(screen.getAllByLabelText(/Front row, \d of 3 cards/)).toHaveLength(
-      count,
-    );
-    expect(screen.getAllByLabelText(/Middle row, \d of 5 cards/)).toHaveLength(
-      count,
-    );
-    expect(screen.getAllByLabelText(/Back row, \d of 5 cards/)).toHaveLength(
-      count,
-    );
+    expect(
+      screen.getAllByLabelText(/Front row, \d committed.*capacity 3/),
+    ).toHaveLength(count);
+    expect(
+      screen.getAllByLabelText(/Middle row, \d committed.*capacity 5/),
+    ).toHaveLength(count);
+    expect(
+      screen.getAllByLabelText(/Back row, \d committed.*capacity 5/),
+    ).toHaveLength(count);
   },
 );
 
@@ -190,6 +191,77 @@ test("provides accessible cards, scores, status, target states, and actions", ()
   expect(onAction).toHaveBeenCalledWith(placeAction("back"));
 });
 
+test("stages and confirms an initial five without moving committed cards", () => {
+  const pending = ["As", "Kh", "Qd", "Jc", "Ts"] as CardCode[];
+  const placements = [
+    { card: pending[0]!, row: "front" as const },
+    { card: pending[1]!, row: "front" as const },
+    { card: pending[2]!, row: "middle" as const },
+    { card: pending[3]!, row: "back" as const },
+    { card: pending[4]!, row: "back" as const },
+  ];
+  const initialAction: OfcHandAction = {
+    schemaVersion: 1,
+    actionId: "initial-five",
+    expectedRevision: 3,
+    playerId: "player-0",
+    type: "ofc.place-initial-cards",
+    payload: { placements },
+  };
+  const state = visibleState(2);
+  const onAction = vi.fn();
+  render(
+    <GameTableView
+      model={model(2, {
+        state: {
+          ...state,
+          players: state.players.map((player) =>
+            player.id === "player-0"
+              ? {
+                  ...player,
+                  board: { front: [], middle: [], back: [] },
+                  placedCardCount: 0,
+                }
+              : player,
+          ),
+          privateData: { pendingCards: pending },
+        },
+        legalActions: [initialAction],
+      })}
+      onAction={onAction}
+      webglSupported={false}
+    />,
+  );
+
+  for (const placement of placements) {
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(cardLabel(placement.card), "i"),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `Place in ${placement.row[0]!.toUpperCase()}${placement.row.slice(1)}`,
+      }),
+    );
+  }
+  expect(onAction).not.toHaveBeenCalled();
+  expect(screen.getAllByText(/Staged:/)).toHaveLength(3);
+  fireEvent.click(screen.getByRole("button", { name: "Confirm initial five" }));
+  expect(onAction).toHaveBeenCalledWith(initialAction);
+});
+
+function cardLabel(card: CardCode): string {
+  const labels: Record<CardCode, string> = {
+    As: "ace of spades",
+    Kh: "king of hearts",
+    Qd: "queen of diamonds",
+    Jc: "jack of clubs",
+    Ts: "ten of spades",
+  } as Record<CardCode, string>;
+  return labels[card] ?? card;
+}
+
 test("keeps a useful DOM game surface when WebGL is unsupported", () => {
   render(
     <GameTableView
@@ -207,6 +279,17 @@ test("keeps a useful DOM game surface when WebGL is unsupported", () => {
     screen.getByRole("region", { name: "Accessible game board" }),
   ).toBeVisible();
   expect(screen.getByRole("group", { name: "Cards to place" })).toBeVisible();
+});
+
+test("announces reconnect progress before placement resumes", () => {
+  render(
+    <GameTableView
+      model={model(2, { connection: "reconnecting", isLocalTurn: false })}
+      onAction={() => undefined}
+      webglSupported={false}
+    />,
+  );
+  expect(screen.getByText("Reconnecting to table")).toBeVisible();
 });
 
 test("represents an opponent Fantasyland board with consistent face-down information", () => {
@@ -257,4 +340,60 @@ test("fills unoccupied configured seats while a lobby is waiting", () => {
     />,
   );
   expect(screen.getAllByRole("heading", { name: "Open seat" })).toHaveLength(3);
+});
+
+test("announces disconnects and presents pairwise showdown details", () => {
+  const round = resolveOfcRound([
+    {
+      playerId: "player-0",
+      board: {
+        front: ["Qc", "Qd", "2c"],
+        middle: ["2h", "3h", "4h", "5h", "6h"],
+        back: ["Ts", "Js", "Qs", "Ks", "As"],
+      },
+      wasInFantasyland: false,
+    },
+    {
+      playerId: "player-1",
+      board: {
+        front: ["Kc", "Kd", "3c"],
+        middle: ["4c", "5c", "6c", "7c", "8c"],
+        back: ["Th", "Jh", "Qh", "Kh", "Ah"],
+      },
+      wasInFantasyland: false,
+    },
+  ]);
+  const state = visibleState(2);
+  render(
+    <GameTableView
+      model={model(2, {
+        phase: "complete",
+        isLocalTurn: false,
+        players: players(2).map((player) =>
+          player.id === "player-1"
+            ? { ...player, connection: "disconnected" }
+            : player,
+        ),
+        state: {
+          ...state,
+          phase: "complete",
+          privateData: { pendingCards: [] },
+        },
+        legalActions: [],
+        showdown: round,
+        canStartNextHand: true,
+      })}
+      onAction={() => undefined}
+      onStartNextHand={() => undefined}
+      webglSupported={false}
+    />,
+  );
+
+  expect(screen.getByText("Disconnected")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Showdown" })).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "Ada vs Player 2" }),
+  ).toBeVisible();
+  expect(screen.getByText("Start next hand")).toBeVisible();
+  expect(screen.getAllByText("Royalties").length).toBeGreaterThan(0);
 });

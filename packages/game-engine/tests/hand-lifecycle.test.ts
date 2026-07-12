@@ -107,6 +107,52 @@ function expectRejected(
 }
 
 describe("OFC hand setup and dealing", () => {
+  test("deals and privately commits a complete Fantasyland arrangement", () => {
+    const state = createOfcHand({
+      schemaVersion: 1,
+      gameId: "fantasyland-game",
+      configuration: configuration(2),
+      players: [
+        { id: "fantasy", displayName: "Fantasy", inFantasyland: true },
+        { id: "ordinary", displayName: "Ordinary" },
+      ],
+      dealerSeat: 1,
+      deck: createStandardDeck().map(serializeCard),
+    });
+
+    expect(state.activePlayerId).toBe("fantasy");
+    expect(state.players[0]?.pendingCards).toHaveLength(13);
+    expect(state.players[1]?.pendingCards).toHaveLength(5);
+    expect(state.nextDeckIndex).toBe(18);
+
+    const placements = placementForBoard(state);
+    const result = transitionOfcHand(state, {
+      schemaVersion: 1,
+      actionId: "arrange-fantasyland",
+      expectedRevision: 0,
+      playerId: "fantasy",
+      type: "ofc.place-initial-cards",
+      payload: { placements },
+    });
+    expect(result.accepted).toBe(true);
+    if (!result.accepted) throw new Error(result.rejection.message);
+
+    expect(ofcHandPublicState(result.state).players[0]?.board).toEqual({
+      front: [],
+      middle: [],
+      back: [],
+    });
+    expect(
+      ofcHandPlayerView(result.state, "ordinary").players[0]?.placedCardCount,
+    ).toBe(13);
+    expect(
+      ofcHandPlayerView(result.state, "ordinary").players[0]?.board.front,
+    ).toEqual([]);
+    expect(
+      ofcHandPlayerView(result.state, "fantasy").players[0]?.board.front,
+    ).toHaveLength(3);
+  });
+
   test.each([2, 3, 4] as const)(
     "creates a serializable %i-player hand with the first turn left of dealer",
     (seatCount) => {

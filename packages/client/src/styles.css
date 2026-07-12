@@ -740,6 +740,133 @@ select {
   justify-self: center;
 }
 
+.game-staged-cards {
+  grid-column: 1 / -1;
+  padding: 0.25rem 0.4rem;
+  border-left: 2px solid #f2c96d;
+  color: #f3d89f;
+  background: #4a3b1c;
+}
+
+.confirm-placement-button {
+  width: min(100%, 24rem);
+  min-height: 2.8rem;
+  justify-self: center;
+  border: 1px solid #d3a855;
+  color: #102119;
+  background: #d7ad5b;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.confirm-placement-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.game-showdown {
+  position: absolute;
+  z-index: 4;
+  inset: 4.8rem clamp(1rem, 7vw, 7rem) 6.5rem;
+  overflow: auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid #d7ad5b80;
+  background: #071b16f5;
+  box-shadow: 0 1.5rem 5rem #0009;
+}
+
+.game-waiting {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 2rem), 34rem);
+  padding: 1.5rem;
+  border: 1px solid #d7ad5b80;
+  background: #071b16f2;
+  box-shadow: 0 1.5rem 5rem #0009;
+  translate: -50% -50%;
+}
+
+.game-waiting h2 {
+  font-size: 2rem;
+}
+
+.game-showdown h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.showdown-player-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.showdown-player-results li {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-left: 2px solid #f2c96d;
+  background: #0c2b23;
+  font-size: 0.75rem;
+}
+
+.showdown-pairs {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.showdown-pairs article {
+  padding: 0.75rem;
+  border: 1px solid #345149;
+}
+
+.showdown-pairs h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+}
+
+.showdown-pairs dl {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(4rem, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.showdown-pairs dl div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.showdown-pairs dt {
+  color: #8fa49c;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.showdown-pairs dd {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .game-scoreboard {
+    width: 38vw;
+  }
+
+  .game-dom-board {
+    width: 48vw;
+  }
+
+  .showdown-pairs dl {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 .game-webgl-fallback {
   position: absolute;
   inset: 0;

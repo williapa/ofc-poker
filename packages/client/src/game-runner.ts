@@ -462,6 +462,10 @@ class OfcGameRunner implements GameRunner {
       this.#connectionState === "closed"
         ? "closed"
         : (state?.hand.phase ?? "waiting");
+    const showdown =
+      state?.hand.phase === "complete"
+        ? state.match.completedHands.at(-1)?.result
+        : undefined;
     this.#dependencies.view.render(
       freezeModel({
         lobby: this.#lobby,
@@ -484,6 +488,7 @@ class OfcGameRunner implements GameRunner {
         players: [...this.#players()],
         ...(visibleState ? { state: visibleState } : {}),
         legalActions: [...legalActions],
+        ...(showdown ? { showdown } : {}),
         ...(this.#error ? { error: this.#error } : {}),
       }),
     );

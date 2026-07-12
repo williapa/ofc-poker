@@ -54,6 +54,7 @@ export interface GameTableViewProps {
   readonly onAction: (action: OfcHandAction) => void;
   readonly onStartNextHand?: () => void;
   readonly onLeave?: () => void;
+  readonly inviteUrl?: string;
   /** Deterministic override for tests and known constrained embeds. */
   readonly webglSupported?: boolean;
 }
@@ -107,9 +108,28 @@ function phaseStatus(model: Readonly<GameViewModel>): string {
   if (model.error) return model.error;
   if (model.connection === "reconnecting") return "Reconnecting to table";
   if (model.phase === "waiting") return "Waiting for players";
-  if (model.phase === "complete") return "Hand complete";
+  if (model.phase === "complete") return "Showdown";
   if (model.phase === "closed") return "Table closed";
-  return model.isLocalTurn ? "Your turn" : "Waiting for another player";
+  const active = model.players.find(({ id }) => id === model.activePlayerId);
+  return model.isLocalTurn
+    ? "Your turn — arrange your cards"
+    : active
+      ? `Waiting for ${active.displayName}`
+      : "Waiting for another player";
+}
+
+function signed(value: number): string {
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function resultLabel(value: -1 | 0 | 1 | null): string {
+  return value === null
+    ? "not scored"
+    : value === 1
+      ? "win"
+      : value === -1
+        ? "loss"
+        : "tie";
 }
 
 function actionAllowsAssignments(
@@ -195,6 +215,9 @@ function createSceneSeats(
       layout.playerId !== model.viewerId &&
       (model.players.find(({ id }) => id === layout.playerId)?.inFantasyland ??
         false),
+    hiddenCardCount:
+      model.state?.players.find(({ id }) => id === layout.playerId)
+        ?.placedCardCount ?? 0,
   }));
 }
 
@@ -203,13 +226,14 @@ export function GameTableView({
   onAction,
   onStartNextHand,
   onLeave,
+  inviteUrl,
   webglSupported,
 }: GameTableViewProps) {
   const compact = useMediaQuery("(max-width: 700px)");
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const pendingCards = model.state?.privateData.pendingCards ?? [];
   const pendingKey = pendingCards.join(",");
-  const interactionKey = `${model.state?.revision ?? "waiting"}:${pendingKey}`;
+  const interactionKey = `${model.state?.revision ?? "waiting"}:${pendingKey}:${model.error ?? "ok"}`;
   const [interaction, setInteraction] = useState<{
     readonly key: string;
     readonly selectedCard?: CardCode;
@@ -263,16 +287,18 @@ export function GameTableView({
 
     const nextAssignments = { ...assignments, [selectedCard]: row };
     setInteraction({ key: interactionKey, assignments: nextAssignments });
-    if (Object.keys(nextAssignments).length === pendingCards.length) {
-      const initialAction = model.legalActions.find(
-        (action) =>
-          action.type === "ofc.place-initial-cards" &&
-          actionAllowsAssignments(action, nextAssignments) &&
-          (action as PlaceInitialCardsAction).payload.placements.length ===
-            pendingCards.length,
-      );
-      if (initialAction !== undefined) onAction(initialAction);
-    }
+  }
+
+  function confirmArrangement() {
+    if (Object.keys(assignments).length !== pendingCards.length) return;
+    const initialAction = model.legalActions.find(
+      (action) =>
+        action.type === "ofc.place-initial-cards" &&
+        actionAllowsAssignments(action, assignments) &&
+        (action as PlaceInitialCardsAction).payload.placements.length ===
+          pendingCards.length,
+    );
+    if (initialAction !== undefined) onAction(initialAction);
   }
 
   return (
@@ -335,6 +361,29 @@ export function GameTableView({
         )}
       </section>
 
+      {model.phase === "waiting" ? (
+        <section className="game-waiting" aria-labelledby="waiting-title">
+          <p className="step">Table ready</p>
+          <h2 id="waiting-title">Waiting for players</h2>
+          <p>
+            {model.players.length} of {model.lobby.settings.seatCount} players
+            seated.
+          </p>
+          {inviteUrl ? (
+            <div className="share-link">
+              <label htmlFor="game-invite-link">Invite link</label>
+              <input
+                id="game-invite-link"
+                readOnly
+                value={inviteUrl}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            </div>
+          ) : null}
+          <p>Settings cannot be changed after creation.</p>
+        </section>
+      ) : null}
+
       <aside className="game-scoreboard" aria-label="Scores">
         <ol>
           {model.players.map((player) => (
@@ -347,6 +396,12 @@ export function GameTableView({
               <strong>{player.score} points</strong>
               {player.connection === "disconnected" ? (
                 <small>Disconnected</small>
+              ) : null}
+              {player.seat === model.dealerSeat ? <small>Dealer</small> : null}
+              {player.id === model.activePlayerId ? (
+                <small>
+                  {player.id === model.viewerId ? "Your turn" : "Acting"}
+                </small>
               ) : null}
               {player.inFantasyland ? <small>Fantasyland</small> : null}
             </li>
@@ -368,20 +423,37 @@ export function GameTableView({
               <div className="game-row-list">
                 {ROW_DEFINITIONS.map(({ row, label, capacity }) => {
                   const cards = board[row];
+                  const staged =
+                    player.id === model.viewerId
+                      ? pendingCards.filter((card) => assignments[card] === row)
+                      : [];
                   const isValid = validRows.includes(row);
+                  const hiddenCount =
+                    faceDown &&
+                    model.state?.players.find(({ id }) => id === player.id)
+                      ?.placedCardCount === 13
+                      ? capacity
+                      : 0;
+                  const committedCount = Math.max(cards.length, hiddenCount);
                   return (
                     <div
                       className="game-dom-row"
                       key={row}
-                      aria-label={`${label} row, ${cards.length} of ${capacity} cards`}
+                      aria-label={`${label} row, ${committedCount} committed${staged.length ? `, ${staged.length} staged` : ""}, capacity ${capacity}`}
                     >
                       <span>
-                        <strong>{label}</strong> {cards.length}/{capacity}
+                        <strong>{label}</strong>{" "}
+                        {committedCount + staged.length}/{capacity}
                       </span>
+                      {staged.length > 0 ? (
+                        <span className="game-staged-cards">
+                          Staged: {staged.map(cardName).join(", ")}
+                        </span>
+                      ) : null}
                       <span className="game-card-names">
-                        {cards.length > 0
+                        {committedCount > 0
                           ? faceDown
-                            ? `${cards.length} face-down card${cards.length === 1 ? "" : "s"}`
+                            ? `${committedCount} face-down card${committedCount === 1 ? "" : "s"}`
                             : cards.map(cardName).join(", ")
                           : "Empty"}
                       </span>
@@ -404,6 +476,85 @@ export function GameTableView({
           );
         })}
       </section>
+
+      {model.phase === "complete" && model.showdown ? (
+        <section className="game-showdown" aria-labelledby="showdown-title">
+          <p className="step">Hand {model.handNumber} complete</p>
+          <h2 id="showdown-title">Showdown</h2>
+          <ul className="showdown-player-results">
+            {model.showdown.players.map((result) => {
+              const player = model.players.find(
+                ({ id }) => id === result.playerId,
+              );
+              return (
+                <li key={result.playerId}>
+                  <strong>{player?.displayName ?? result.playerId}</strong>
+                  <span>
+                    {result.evaluation.fouled
+                      ? "Fouled board"
+                      : `${result.evaluation.royalties.total} royalties`}
+                  </span>
+                  <span>{signed(result.totalDelta)} this hand</span>
+                  {result.fantasyland.qualifiesForNextHand ? (
+                    <span>Fantasyland next hand</span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+          <div className="showdown-pairs">
+            {model.showdown.pairs.map((pair) => {
+              const first =
+                model.players.find(({ id }) => id === pair.firstPlayerId)
+                  ?.displayName ?? pair.firstPlayerId;
+              const second =
+                model.players.find(({ id }) => id === pair.secondPlayerId)
+                  ?.displayName ?? pair.secondPlayerId;
+              return (
+                <article key={`${pair.firstPlayerId}:${pair.secondPlayerId}`}>
+                  <h3>
+                    {first} vs {second}
+                  </h3>
+                  <dl>
+                    <div>
+                      <dt>Front</dt>
+                      <dd>{resultLabel(pair.rows.front)}</dd>
+                    </div>
+                    <div>
+                      <dt>Middle</dt>
+                      <dd>{resultLabel(pair.rows.middle)}</dd>
+                    </div>
+                    <div>
+                      <dt>Back</dt>
+                      <dd>{resultLabel(pair.rows.back)}</dd>
+                    </div>
+                    <div>
+                      <dt>Rows</dt>
+                      <dd>{signed(pair.rowDelta)}</dd>
+                    </div>
+                    <div>
+                      <dt>Scoop</dt>
+                      <dd>{signed(pair.scoopDelta)}</dd>
+                    </div>
+                    <div>
+                      <dt>Foul</dt>
+                      <dd>{signed(pair.foulDelta)}</dd>
+                    </div>
+                    <div>
+                      <dt>Royalties</dt>
+                      <dd>{signed(pair.royaltyDelta)}</dd>
+                    </div>
+                    <div>
+                      <dt>Total</dt>
+                      <dd>{signed(pair.totalDelta)}</dd>
+                    </div>
+                  </dl>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <footer className="game-controls" aria-label="Card controls">
         <div className="pending-cards" role="group" aria-label="Cards to place">
@@ -435,6 +586,19 @@ export function GameTableView({
           <p className="game-error" role="alert">
             {model.error}
           </p>
+        ) : null}
+        {pendingCards.length > 1 ? (
+          <button
+            className="confirm-placement-button"
+            type="button"
+            disabled={Object.keys(assignments).length !== pendingCards.length}
+            onClick={confirmArrangement}
+          >
+            Confirm{" "}
+            {pendingCards.length === 13
+              ? "Fantasyland arrangement"
+              : "initial five"}
+          </button>
         ) : null}
         {model.canStartNextHand && onStartNextHand ? (
           <button

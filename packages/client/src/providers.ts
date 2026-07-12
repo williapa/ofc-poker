@@ -1,11 +1,13 @@
-import {
-  LocalDataProvider,
-  type DataProvider,
-  type JsonValue,
-} from "@ofcpoker/data-provider";
+import { LocalDataProvider, type DataProvider } from "@ofcpoker/data-provider";
+import type { OfcHandAction, OfcHandEvent } from "@ofcpoker/game-engine";
+import type { OfcRunnerSnapshot } from "./contracts/game-runner";
 import type { LobbyMode } from "./lobby";
 
-export type ClientDataProvider = DataProvider<JsonValue, JsonValue, JsonValue>;
+export type ClientDataProvider = DataProvider<
+  OfcHandAction,
+  OfcRunnerSnapshot,
+  OfcHandEvent
+>;
 
 export interface ProviderFactory {
   create(mode: LobbyMode): Promise<ClientDataProvider>;

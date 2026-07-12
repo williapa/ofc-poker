@@ -2,6 +2,7 @@ import type { LobbyMetadata } from "@ofcpoker/data-provider";
 import type {
   OfcHandAction,
   OfcPlayerVisibleState,
+  OfcRoundResult,
   PlayerId,
 } from "@ofcpoker/game-engine";
 
@@ -29,6 +30,8 @@ export interface GameViewModel {
   readonly players: readonly GameViewPlayer[];
   readonly state?: OfcPlayerVisibleState;
   readonly legalActions: readonly OfcHandAction[];
+  /** Present after resolution; contains public boards and pairwise scoring. */
+  readonly showdown?: OfcRoundResult;
   readonly error?: string;
 }
 

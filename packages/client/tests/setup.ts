@@ -16,4 +16,9 @@ Object.defineProperty(window, "matchMedia", {
   }),
 });
 
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+  configurable: true,
+  value: () => null,
+});
+
 afterEach(cleanup);

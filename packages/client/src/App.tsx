@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import {
-  DataProviderError,
-  type JsonValue,
-  type LobbyConnection,
-  type LobbyMetadata,
-} from "@ofcpoker/data-provider";
+import { DataProviderError } from "@ofcpoker/data-provider";
+import type { OfcLobbyConnection } from "./contracts/game-runner";
+import { GameScreen } from "./GameScreen";
 import {
   createHomeUrl,
   createJoinUrl,
@@ -23,8 +20,6 @@ import {
   type ClientDataProvider,
   type ProviderFactory,
 } from "./providers";
-
-type ClientConnection = LobbyConnection<JsonValue, JsonValue, JsonValue>;
 
 export interface AppProps {
   readonly providerFactory?: ProviderFactory;
@@ -335,92 +330,6 @@ function JoinScreen({
   );
 }
 
-function LobbySettingsView({ lobby }: { readonly lobby: LobbyMetadata }) {
-  return (
-    <section
-      className="immutable-settings"
-      aria-labelledby="lobby-settings-title"
-    >
-      <div>
-        <p className="step">Table settings</p>
-        <h2 id="lobby-settings-title">Locked for this lobby</h2>
-      </div>
-      <dl>
-        <div>
-          <dt>Mode</dt>
-          <dd>
-            {lobby.settings.mode === "local-ai" ? "Local AI" : "Multiplayer"}
-          </dd>
-        </div>
-        <div>
-          <dt>Players</dt>
-          <dd>{lobby.settings.seatCount}</dd>
-        </div>
-        <div>
-          <dt>Game</dt>
-          <dd>Standard OFC</dd>
-        </div>
-        <div>
-          <dt>Fantasyland</dt>
-          <dd>On</dd>
-        </div>
-        <div>
-          <dt>Tied rows</dt>
-          <dd>0 points</dd>
-        </div>
-      </dl>
-      <p className="lock-note">
-        <span aria-hidden="true">◆</span> Settings cannot be changed after
-        creation.
-      </p>
-    </section>
-  );
-}
-
-interface LobbyScreenProps {
-  readonly lobby: LobbyMetadata;
-  readonly joinUrl: string;
-  readonly onHome: () => void;
-}
-
-function LobbyScreen({ lobby, joinUrl, onHome }: LobbyScreenProps) {
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => headingRef.current?.focus(), []);
-  return (
-    <main className="centered-shell lobby-shell">
-      <section className="lobby-card" aria-labelledby="lobby-title">
-        <Brand />
-        <p className="eyebrow">Table ready</p>
-        <h1 id="lobby-title" ref={headingRef} tabIndex={-1}>
-          {lobby.settings.mode === "local-ai"
-            ? "Your game is ready."
-            : "Waiting for players."}
-        </h1>
-        <p className="lede">
-          {lobby.settings.mode === "local-ai"
-            ? "Your opponents are seated. Gameplay arrives in the next milestone."
-            : `${lobby.participants.length} of ${lobby.settings.seatCount} players seated.`}
-        </p>
-        {lobby.settings.mode === "multiplayer" ? (
-          <div className="share-link">
-            <label htmlFor="join-link">Invite link</label>
-            <input
-              id="join-link"
-              readOnly
-              value={joinUrl}
-              onFocus={(event) => event.currentTarget.select()}
-            />
-          </div>
-        ) : null}
-        <LobbySettingsView lobby={lobby} />
-        <button className="secondary-button" type="button" onClick={onHome}>
-          Leave table
-        </button>
-      </section>
-    </main>
-  );
-}
-
 function InvalidJoinScreen({
   message,
   homeUrl,
@@ -467,7 +376,7 @@ export function App({ providerFactory, initialUrl }: AppProps) {
     [providerFactory],
   );
   const [route, setRoute] = useState<AppRoute>(() => parseAppRoute(baseUrl));
-  const [connection, setConnection] = useState<ClientConnection>();
+  const [connection, setConnection] = useState<OfcLobbyConnection>();
   const [provider, setProvider] = useState<ClientDataProvider>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -539,10 +448,12 @@ export function App({ providerFactory, initialUrl }: AppProps) {
 
   if (connection) {
     return (
-      <LobbyScreen
-        lobby={connection.lobby}
-        joinUrl={createJoinUrl(baseUrl, connection.lobby.id)}
-        onHome={navigateHome}
+      <GameScreen
+        connection={connection}
+        onLeave={navigateHome}
+        {...(connection.lobby.settings.mode === "multiplayer"
+          ? { inviteUrl: createJoinUrl(baseUrl, connection.lobby.id) }
+          : {})}
       />
     );
   }

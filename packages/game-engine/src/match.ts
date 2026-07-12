@@ -125,11 +125,14 @@ export function createOfcMatchHand(
     gameId: state.gameId,
     configuration: state.configuration,
     dealerSeat: state.dealerSeat,
-    players: state.players.map(({ id, displayName, cumulativeScore }) => ({
-      id,
-      displayName,
-      score: cumulativeScore,
-    })),
+    players: state.players.map(
+      ({ id, displayName, cumulativeScore, inFantasyland }) => ({
+        id,
+        displayName,
+        score: cumulativeScore,
+        inFantasyland,
+      }),
+    ),
     deck,
   });
 }

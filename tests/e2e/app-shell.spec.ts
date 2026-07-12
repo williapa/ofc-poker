@@ -14,11 +14,24 @@ test("creates a local AI lobby from the accessible setup form", async ({
   await page.getByRole("button", { name: /Create table/ }).click();
 
   await expect(
-    page.getByRole("heading", { name: "Your game is ready." }),
-  ).toBeFocused();
-  await expect(
-    page.getByText("Settings cannot be changed after creation."),
+    page.getByRole("heading", { name: "Open Face Chinese Poker" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("complementary", { name: "Scores" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Your turn/).first()).toBeVisible();
+
+  const cards = page
+    .getByRole("group", { name: "Cards to place" })
+    .getByRole("button");
+  await expect(cards).toHaveCount(5);
+  for (let index = 0; index < 5; index += 1) {
+    await cards.nth(index).click();
+    await page.getByRole("button", { name: "Place in Back" }).click();
+  }
+  await expect(page.getByText(/Staged:/)).toBeVisible();
+  await page.getByRole("button", { name: "Confirm initial five" }).click();
+  await expect(page.getByLabel(/Back row, 5 committed/).first()).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);
 });
 

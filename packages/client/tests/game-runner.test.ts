@@ -334,6 +334,22 @@ describe("OFC game runner", () => {
     expect(
       peerView.latest.players.map(({ inFantasyland }) => inFantasyland),
     ).toEqual([true, true]);
+    expect(hostView.latest.state?.privateData.pendingCards).toHaveLength(13);
+    expect(hostView.latest.legalActions.length).toBeGreaterThan(0);
+
+    hostView.emit(hostView.latest.legalActions[0] as OfcHandAction);
+    await waitForRevision(peerView, 1);
+    const hiddenHost = peerView.latest.state?.players.find(
+      ({ id }) => id === hostConnection.participant.id,
+    );
+    expect(hiddenHost?.placedCardCount).toBe(13);
+    expect(hiddenHost?.board).toEqual({ front: [], middle: [], back: [] });
+
+    peerView.emit(peerView.latest.legalActions[0] as OfcHandAction);
+    await waitForRevision(hostView, 2);
+    expect(hostView.latest.phase).toBe("complete");
+    expect(hostView.latest.showdown?.pairs).toHaveLength(1);
+    expect(hostView.latest.showdown?.players[0]?.board.front).toHaveLength(3);
 
     await peerRunner.dispose();
     await hostRunner.dispose();

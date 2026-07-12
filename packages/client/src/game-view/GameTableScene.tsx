@@ -16,6 +16,7 @@ export interface SceneSeat {
   readonly board: OfcBoard;
   readonly layout: SeatLayout;
   readonly faceDown: boolean;
+  readonly hiddenCardCount: number;
 }
 
 export interface GameTableSceneProps {
@@ -83,7 +84,7 @@ function PlayingCard({
   return (
     <group
       position={[position[0], position[1] + lift, position[2]]}
-      name={`card-${code}`}
+      name={faceUp ? `card-${code}` : "card-back"}
       userData={{
         selected,
         interactive,
@@ -240,6 +241,17 @@ function SeatBoard({
                 faceUp={!seat.faceDown}
               />
             ))}
+            {seat.faceDown && cards.length === 0 && seat.hiddenCardCount === 13
+              ? Array.from({ length: capacity }, (_, index) => (
+                  <PlayingCard
+                    key={`hidden-${row}-${index}`}
+                    code={"2c"}
+                    position={[rowCardX(index, capacity), 0.045, 0]}
+                    reducedMotion
+                    faceUp={false}
+                  />
+                ))
+              : null}
           </group>
         );
       })}

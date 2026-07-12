@@ -186,3 +186,18 @@ Requirement references: R4 standard OFC board presentation, R5 two-to-four-seat 
 - Added deterministic component and layout tests for every seat count, camera behavior, row semantics, card/action semantics, Fantasyland privacy, configured open seats, and fallback behavior.
 
 R9 and R10 remain open until the game view is connected to the complete application journey and the remaining product features are implemented and tested end to end.
+
+## 13. Complete human card-placement and showdown UX
+
+Status: complete (2026-07-12)
+
+Requirement references: R4 standard OFC and Fantasyland play, R5 two-to-four-seat feedback, R9 integrated 3D game view, R10 component/integration coverage, and R11 browser coverage.
+
+- Connected lobby creation and joining to the host-authoritative runner and game view, including configured local AI seats, deterministic injected deck boundaries, waiting/invite presentation, cleanup, and next-hand control.
+- Added click- and keyboard-complete staged initial-five and private thirteen-card Fantasyland arrangement with explicit confirmation, capacity-safe targets, immutable committed cards, immediate single-card commits, and rejection reset/error announcements.
+- Extended hand setup to deal thirteen private cards to qualified Fantasyland players, keep their committed boards hidden from opponents during placement, expose the owner’s board, and reveal all boards at showdown.
+- Added dealer, active-turn, waiting, disconnect/reconnect, Fantasyland, foul, royalty, scoop, per-hand delta, and cumulative-score presentation.
+- Added a pairwise showdown breakdown for row results, scoop, foul, royalties, and totals, plus an explicit host-only next-hand action.
+- Added engine, runner, component, application, and browser coverage for normal and Fantasyland placement, privacy/reveal, staged versus committed cards, full/unavailable rows, rejection feedback, disconnect/reconnect status, showdown, and next-hand flow.
+
+No product requirement is newly marked complete: later prompts still cover the complete offline AI journey, multiplayer hardening, deployment, and whole-product acceptance coverage.

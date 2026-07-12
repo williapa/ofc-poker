@@ -1,21 +1,29 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import {
-  LocalDataProvider,
-  type JsonValue,
-  type LobbySettings,
-} from "@ofcpoker/data-provider";
+import { LocalDataProvider, type LobbySettings } from "@ofcpoker/data-provider";
+import type { OfcHandAction, OfcHandEvent } from "@ofcpoker/game-engine";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { App } from "../src/App";
 import type { ClientDataProvider, ProviderFactory } from "../src/providers";
+import type { OfcRunnerSnapshot } from "../src/contracts/game-runner";
 
-const providers: LocalDataProvider<JsonValue, JsonValue, JsonValue>[] = [];
+type TestProvider = LocalDataProvider<
+  OfcHandAction,
+  OfcRunnerSnapshot,
+  OfcHandEvent
+>;
+
+const providers: TestProvider[] = [];
 
 afterEach(async () => {
   for (const provider of providers.splice(0)) await provider.dispose();
 });
 
-function localProvider(): LocalDataProvider<JsonValue, JsonValue, JsonValue> {
-  const provider = new LocalDataProvider<JsonValue, JsonValue, JsonValue>();
+function localProvider(): TestProvider {
+  const provider = new LocalDataProvider<
+    OfcHandAction,
+    OfcRunnerSnapshot,
+    OfcHandEvent
+  >();
   providers.push(provider);
   return provider;
 }
@@ -96,14 +104,11 @@ test("creates a local AI lobby through explicit provider wiring", async () => {
   fireEvent.click(screen.getByRole("button", { name: /Create table/ }));
 
   expect(
-    await screen.findByRole("heading", { name: "Your game is ready." }),
-  ).toHaveFocus();
+    await screen.findByRole("heading", { name: "Open Face Chinese Poker" }),
+  ).toBeVisible();
   expect(factory.create).toHaveBeenCalledWith("local-ai");
   expect(screen.queryByText("You and 3 AI opponents.")).not.toBeInTheDocument();
-  expect(screen.getAllByRole("definition")).toHaveLength(5);
-  expect(
-    screen.getByText("Settings cannot be changed after creation."),
-  ).toBeVisible();
+  expect(screen.getByRole("complementary", { name: "Scores" })).toBeVisible();
   expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   expect(screen.queryByRole("radio")).not.toBeInTheDocument();
 });
@@ -159,10 +164,10 @@ describe("join flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Join lobby" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Waiting for players." }),
+      await screen.findByRole("heading", { name: "Waiting for players" }),
     ).toBeVisible();
     expect(factory.create).toHaveBeenCalledWith("multiplayer");
-    expect(screen.getByText("2 of 3 players seated.")).toBeVisible();
+    expect(screen.getByText(/2 of 3 players\s+seated\./)).toBeVisible();
     expect(
       screen.getByText("Settings cannot be changed after creation."),
     ).toBeVisible();

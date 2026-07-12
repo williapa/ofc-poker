@@ -34,6 +34,8 @@ export interface PlayerSetup {
   readonly displayName: string;
   /** Cumulative score copied from match state; defaults to zero. */
   readonly score?: number;
+  /** Whether this player receives and privately arranges all thirteen cards. */
+  readonly inFantasyland?: boolean;
 }
 
 export interface OfcHandSetup {
@@ -51,6 +53,7 @@ export interface OfcHandPlayerState {
   readonly displayName: string;
   readonly connected: boolean;
   readonly score: number;
+  readonly inFantasyland: boolean;
   readonly board: OfcBoard;
   readonly pendingCards: readonly CardCode[];
 }
@@ -246,11 +249,15 @@ export function createOfcHand(setup: OfcHandSetup): OfcHandState {
   const order = actionOrder(count, setup.dealerSeat);
   let deckIndex = 0;
 
-  // Standard dealing order: five clockwise rounds beginning left of the dealer.
-  for (let round = 0; round < 5; round += 1) {
+  // Fantasyland players receive thirteen cards while ordinary players receive
+  // the standard initial five, all in deterministic clockwise deal order.
+  for (let round = 0; round < 13; round += 1) {
     for (const seat of order) {
-      pendingBySeat[seat]?.push(setup.deck[deckIndex] as CardCode);
-      deckIndex += 1;
+      const player = setup.players[seat];
+      if (round < (player?.inFantasyland ? 13 : 5)) {
+        pendingBySeat[seat]?.push(setup.deck[deckIndex] as CardCode);
+        deckIndex += 1;
+      }
     }
   }
 
@@ -259,6 +266,7 @@ export function createOfcHand(setup: OfcHandSetup): OfcHandState {
     seat,
     connected: true,
     score: player.score ?? 0,
+    inFantasyland: player.inFantasyland ?? false,
     board: { front: [], middle: [], back: [] },
     pendingCards: pendingBySeat[seat] as readonly CardCode[],
   }));
@@ -369,7 +377,8 @@ function parseAction(action: unknown):
   if (
     action.type === "ofc.place-initial-cards" &&
     Array.isArray(action.payload.placements) &&
-    action.payload.placements.length === 5 &&
+    (action.payload.placements.length === 5 ||
+      action.payload.placements.length === 13) &&
     action.payload.placements.every(isPlacement)
   ) {
     return {
@@ -452,7 +461,7 @@ export function transitionOfcHand(
   if (
     stage !== expectedStage ||
     (stage === "initial"
-      ? player.pendingCards.length !== 5
+      ? player.pendingCards.length !== (player.inFantasyland ? 13 : 5)
       : player.pendingCards.length !== 1)
   ) {
     return rejection(
@@ -513,7 +522,10 @@ export function ofcHandLegalActions(
     );
   const candidates: OfcHandAction[] = [];
 
-  if (placedCardCount(player) === 0 && player.pendingCards.length === 5) {
+  if (
+    placedCardCount(player) === 0 &&
+    player.pendingCards.length === (player.inFantasyland ? 13 : 5)
+  ) {
     const placements: CardPlacement[] = [];
     const counts = {
       front: player.board.front.length,
@@ -594,8 +606,8 @@ function isOfcHandEvent(event: unknown): event is OfcHandEvent {
     (event.payload.stage === "initial" || event.payload.stage === "single") &&
     Array.isArray(event.payload.placements) &&
     event.payload.placements.every(isPlacement) &&
-    event.payload.placements.length ===
-      (event.payload.stage === "initial" ? 5 : 1)
+    event.payload.placements.length >= 1 &&
+    event.payload.placements.length <= 13
   );
 }
 
@@ -751,7 +763,10 @@ export function ofcHandPublicState(state: OfcHandState): OfcPublicEngineState {
       displayName: player.displayName,
       connected: player.connected,
       score: player.score,
-      board: player.board,
+      board:
+        state.phase === "placing" && player.inFantasyland
+          ? { front: [], middle: [], back: [] }
+          : player.board,
       placedCardCount: boardCards(player.board).length,
     })),
   });
@@ -764,8 +779,14 @@ export function ofcHandPlayerView(
   const player = state.players.find(({ id }) => id === playerId);
   if (player === undefined)
     throw new RangeError("Player is not seated in this hand");
+  const publicState = ofcHandPublicState(state);
   return deepFreeze({
-    ...ofcHandPublicState(state),
+    ...publicState,
+    players: publicState.players.map((visiblePlayer) =>
+      visiblePlayer.id === playerId
+        ? { ...visiblePlayer, board: player.board }
+        : visiblePlayer,
+    ),
     viewerId: playerId,
     privateData: { pendingCards: [...player.pendingCards] },
   });
