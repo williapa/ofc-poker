@@ -404,6 +404,7 @@ class OfcGameRunner implements GameRunner {
           score: 0,
           inFantasyland: false,
           isAi: false,
+          isThinking: false,
         }),
       );
       return [
@@ -416,6 +417,7 @@ class OfcGameRunner implements GameRunner {
           score: 0,
           inFantasyland: false,
           isAi: true,
+          isThinking: this.#aiInFlight?.endsWith(`:${player.id}`) ?? false,
         })),
       ];
     }
@@ -431,11 +433,12 @@ class OfcGameRunner implements GameRunner {
         score: player.cumulativeScore,
         inFantasyland: player.inFantasyland,
         isAi: this.#aiById.has(player.id),
+        isThinking: this.#aiInFlight?.endsWith(`:${player.id}`) ?? false,
       };
     });
   }
 
-  #render(): void {
+  #render(scheduleAi = true): void {
     if (this.#disposed) return;
     const state = this.#state;
     const viewerId = this.#dependencies.connection.participant.id;
@@ -492,7 +495,7 @@ class OfcGameRunner implements GameRunner {
         ...(this.#error ? { error: this.#error } : {}),
       }),
     );
-    this.#scheduleAi();
+    if (scheduleAi) this.#scheduleAi();
   }
 
   #scheduleAi(): void {
@@ -515,7 +518,11 @@ class OfcGameRunner implements GameRunner {
       seat.player.id,
       (candidate) => `${actionBase}:ai:${candidate}`,
     );
-    if (legalActions.length === 0) return;
+    if (legalActions.length === 0) {
+      this.#aiInFlight = undefined;
+      return;
+    }
+    this.#render(false);
     void this.#decideAi(
       seat.player,
       seat,
@@ -560,6 +567,7 @@ class OfcGameRunner implements GameRunner {
       );
       this.#render();
     } catch (error) {
+      if (this.#aiInFlight === key) this.#aiInFlight = undefined;
       this.#fail(error);
     }
   }
@@ -578,6 +586,9 @@ class OfcGameRunner implements GameRunner {
     this.#unsubscribeView?.();
     this.#unsubscribeProvider = undefined;
     this.#unsubscribeView = undefined;
+    await Promise.allSettled(
+      [...this.#aiById.values()].map(async (seat) => seat.dispose?.()),
+    );
     this.#dependencies.view.dispose();
     if (this.#dependencies.disposeMode === "disconnect") {
       await this.#dependencies.connection.disconnect();

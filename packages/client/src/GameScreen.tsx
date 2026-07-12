@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  createAiConfiguration,
-  createAiPlayer,
-  createSeededRandom,
-} from "@ofcpoker/ai-player";
-import {
   createStandardDeck,
   serializeCard,
   shuffleDeck,
@@ -14,13 +9,10 @@ import type {
   GameViewModel,
   ViewActionListener,
 } from "./contracts/game-view";
-import type {
-  GameRunner,
-  OfcLobbyConnection,
-  RunnerAiSeat,
-} from "./contracts/game-runner";
+import type { GameRunner, OfcLobbyConnection } from "./contracts/game-runner";
 import { createOfcGameRunner } from "./game-runner";
 import { GameTableView } from "./game-view";
+import { createLocalAiSeats } from "./local-ai";
 
 export interface GameScreenProps {
   readonly connection: OfcLobbyConnection;
@@ -28,31 +20,12 @@ export interface GameScreenProps {
   readonly inviteUrl?: string;
 }
 
-function seedFor(value: string): number {
-  let seed = 2166136261;
-  for (const character of value) {
-    seed ^= character.codePointAt(0) ?? 0;
-    seed = Math.imul(seed, 16777619);
-  }
-  return seed >>> 0;
-}
-
-function aiSeatsFor(connection: OfcLobbyConnection): readonly RunnerAiSeat[] {
+function aiSeatsFor(connection: OfcLobbyConnection) {
   if (connection.lobby.settings.mode !== "local-ai") return [];
-  return Array.from(
-    { length: connection.lobby.settings.seatCount - 1 },
-    (_, index) => {
-      const id = `ai-${connection.lobby.id}-${index + 1}`;
-      return {
-        player: createAiPlayer({
-          id,
-          dependencies: { random: createSeededRandom(seedFor(id)) },
-        }),
-        displayName: `Bot ${index + 1}`,
-        configuration: createAiConfiguration("medium"),
-      };
-    },
-  );
+  return createLocalAiSeats({
+    lobbyId: connection.lobby.id,
+    seatCount: connection.lobby.settings.seatCount,
+  });
 }
 
 export function GameScreen({

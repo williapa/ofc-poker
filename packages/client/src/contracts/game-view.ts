@@ -14,6 +14,7 @@ export interface GameViewPlayer {
   readonly score: number;
   readonly inFantasyland: boolean;
   readonly isAi: boolean;
+  readonly isThinking: boolean;
 }
 
 /** Complete, immutable presentation state; views never inspect provider objects. */

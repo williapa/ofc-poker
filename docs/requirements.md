@@ -7,7 +7,7 @@ When the requirements are met the project is done.
 3. [ ] user configures default game settings via form before creating lobby
 4. [ ] lobby hosts a game of Open Face Chinese Poker (see "./reference/open-face-chinese-poker-rules-engine-spec.md");
 5. [ ] 2 to 4 players supported in any lobby
-6. [ ] "AI lobby" option which can be used as a local-play option that does NOT engage the multiplayer service
+6. [x] "AI lobby" option which can be used as a local-play option that does NOT engage the multiplayer service
 7. [x] internally configurable AI players (so you can customize AI player strength & style easily)
 8. [ ] rules stay fixed for a lobby (to reconfigure game, create a new lobby)
 9. [ ] game view is a minimal, 3D UI of the card game

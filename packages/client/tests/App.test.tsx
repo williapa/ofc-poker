@@ -109,6 +109,9 @@ test("creates a local AI lobby through explicit provider wiring", async () => {
   expect(factory.create).toHaveBeenCalledWith("local-ai");
   expect(screen.queryByText("You and 3 AI opponents.")).not.toBeInTheDocument();
   expect(screen.getByRole("complementary", { name: "Scores" })).toBeVisible();
+  expect(screen.getByText("Mina · AI")).toBeVisible();
+  expect(screen.getByText("Theo · AI")).toBeVisible();
+  expect(screen.getByText("Iris · AI")).toBeVisible();
   expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   expect(screen.queryByRole("radio")).not.toBeInTheDocument();
 });

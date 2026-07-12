@@ -114,7 +114,9 @@ function phaseStatus(model: Readonly<GameViewModel>): string {
   return model.isLocalTurn
     ? "Your turn — arrange your cards"
     : active
-      ? `Waiting for ${active.displayName}`
+      ? active.isThinking
+        ? `${active.displayName} is thinking…`
+        : `Waiting for ${active.displayName}`
       : "Waiting for another player";
 }
 
@@ -400,7 +402,11 @@ export function GameTableView({
               {player.seat === model.dealerSeat ? <small>Dealer</small> : null}
               {player.id === model.activePlayerId ? (
                 <small>
-                  {player.id === model.viewerId ? "Your turn" : "Acting"}
+                  {player.id === model.viewerId
+                    ? "Your turn"
+                    : player.isThinking
+                      ? "Thinking…"
+                      : "Acting"}
                 </small>
               ) : null}
               {player.inFantasyland ? <small>Fantasyland</small> : null}

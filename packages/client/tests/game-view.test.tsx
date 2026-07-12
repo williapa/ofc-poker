@@ -20,6 +20,7 @@ function players(count: 2 | 3 | 4): readonly GameViewPlayer[] {
     score: seat * -2,
     inFantasyland: seat === 1,
     isAi: seat > 0,
+    isThinking: false,
   }));
 }
 
@@ -396,4 +397,24 @@ test("announces disconnects and presents pairwise showdown details", () => {
   ).toBeVisible();
   expect(screen.getByText("Start next hand")).toBeVisible();
   expect(screen.getAllByText("Royalties").length).toBeGreaterThan(0);
+});
+
+test("announces AI thinking from runner state without consulting a clock", () => {
+  render(
+    <GameTableView
+      model={model(2, {
+        activePlayerId: "player-1",
+        isLocalTurn: false,
+        players: players(2).map((player) =>
+          player.id === "player-1" ? { ...player, isThinking: true } : player,
+        ),
+        legalActions: [],
+      })}
+      onAction={() => undefined}
+      webglSupported={false}
+    />,
+  );
+
+  expect(screen.getByText("Player 2 is thinking…")).toBeVisible();
+  expect(screen.getByText("Thinking…")).toBeVisible();
 });

@@ -201,3 +201,18 @@ Requirement references: R4 standard OFC and Fantasyland play, R5 two-to-four-sea
 - Added engine, runner, component, application, and browser coverage for normal and Fantasyland placement, privacy/reveal, staged versus committed cards, full/unavailable rows, rejection feedback, disconnect/reconnect status, showdown, and next-hand flow.
 
 No product requirement is newly marked complete: later prompts still cover the complete offline AI journey, multiplayer hardening, deployment, and whole-product acceptance coverage.
+
+## 14. Deliver the complete offline AI-lobby mode
+
+Status: complete (2026-07-12)
+
+Requirement references: R4 multi-hand score, dealer, and Fantasyland continuity; R5 two-to-four-seat local play; R6 quota-free offline AI lobby; R7 centralized AI configuration; R10 unit/integration coverage; and R11 local journey browser coverage.
+
+- Added one client-owned production AI profile registry for opponent names, strategies, difficulty, tuning, and presentation pacing, with deterministic per-lobby random sources and support for one to three AI seats.
+- Added cancellable client-side think delays while keeping the AI package clock-free; runner disposal now cancels each seat's pending presentation work and generation/revision guards prevent duplicate or late actions.
+- Exposed deterministic AI-thinking state through the view model and accessible status/scoreboard text without making tests advance real timers.
+- Asserted that local AI creation does not load the Playroom adapter, construct a WebSocket, or call `fetch`, even when multiplayer configuration is present.
+- Added deterministic integration coverage that completes consecutive human-plus-AI hands, verifies cumulative zero-sum scores and dealer rotation, and renders the resulting showdown score screen.
+- Retained the existing deterministic multi-hand runner coverage that proves Fantasyland qualification, hidden placement, reveal, score preservation, and dealer rotation across hands.
+
+R6 is complete. R4, R5, R10, and R11 remain open pending the later multiplayer hardening, deployment, and whole-product acceptance prompts.

@@ -34,6 +34,8 @@ export interface RunnerAiSeat {
   readonly player: AiPlayer<OfcHandAction, OfcPlayerVisibleState>;
   readonly displayName: string;
   readonly configuration: AiConfiguration;
+  /** Cancels client-owned presentation work such as a pending think delay. */
+  readonly dispose?: () => void | Promise<void>;
 }
 
 export interface GameRunnerDependencies {

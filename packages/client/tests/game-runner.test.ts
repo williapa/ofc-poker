@@ -9,6 +9,8 @@ import {
   type OfcPlayerVisibleState,
 } from "@ofcpoker/game-engine";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { createElement } from "react";
 import type {
   GameView,
   GameViewModel,
@@ -23,6 +25,7 @@ import {
   createGameRunnerLifecycle,
   createOfcGameRunner,
 } from "../src/game-runner";
+import { GameTableView } from "../src/game-view/GameTableView";
 
 const settings: LobbySettings = {
   schemaVersion: 1,
@@ -199,6 +202,32 @@ async function waitForRevision(
   revision: number,
 ): Promise<void> {
   await vi.waitFor(() => expect(view.latest.state?.revision).toBe(revision));
+}
+
+async function playLocalHumanTurnsUntilComplete(
+  view: FakeView,
+): Promise<number> {
+  let humanActions = 0;
+  for (let guard = 0; guard < 20; guard += 1) {
+    await vi.waitFor(() =>
+      expect(view.latest.isLocalTurn || view.latest.phase === "complete").toBe(
+        true,
+      ),
+    );
+    if (view.latest.phase === "complete") break;
+    const revision = view.latest.state?.revision;
+    const action = view.latest.legalActions[0];
+    if (revision === undefined || action === undefined) {
+      throw new Error("Local player did not receive a legal action");
+    }
+    view.emit(action);
+    humanActions += 1;
+    await vi.waitFor(() =>
+      expect(view.latest.state?.revision).toBeGreaterThan(revision),
+    );
+  }
+  expect(view.latest.phase).toBe("complete");
+  return humanActions;
 }
 
 describe("OFC game runner", () => {
@@ -423,6 +452,7 @@ describe("OFC game runner", () => {
     })) as OfcLobbyConnection;
     const view = new FakeView();
     let releaseSecondDecision: (() => void) | undefined;
+    const disposeAi = vi.fn();
     const decide = vi.fn<
       AiPlayer<OfcHandAction, OfcPlayerVisibleState>["decide"]
     >(async ({ legalActions }) => {
@@ -442,6 +472,7 @@ describe("OFC game runner", () => {
           player: { id: "ai-one", decide },
           displayName: "Bot",
           configuration: createAiConfiguration("easy"),
+          dispose: disposeAi,
         },
       ],
     });
@@ -453,6 +484,9 @@ describe("OFC game runner", () => {
     expect(view.latest.activePlayerId).toBe(connection.participant.id);
     view.emit(view.latest.legalActions[0] as OfcHandAction);
     await vi.waitFor(() => expect(decide).toHaveBeenCalledTimes(2));
+    expect(
+      view.latest.players.find(({ id }) => id === "ai-one")?.isThinking,
+    ).toBe(true);
 
     const revisionAtDispose = view.latest.state?.revision;
     const renderCountAtDispose = view.models.length;
@@ -460,7 +494,76 @@ describe("OFC game runner", () => {
     releaseSecondDecision?.();
     await new Promise<void>((resolve) => queueMicrotask(resolve));
     expect(view.disposed).toBe(true);
+    expect(disposeAi).toHaveBeenCalledTimes(1);
     expect(view.models).toHaveLength(renderCountAtDispose);
     expect(view.latest.state?.revision).toBe(revisionAtDispose);
+  });
+
+  test("plays deterministic human-plus-AI hands through showdown and renders cumulative scores", async () => {
+    const transport = provider();
+    const connection = (await transport.createLobby(localSettings, {
+      displayName: "Alice",
+    })) as OfcLobbyConnection;
+    const view = new FakeView();
+    const decide = vi.fn<
+      AiPlayer<OfcHandAction, OfcPlayerVisibleState>["decide"]
+    >(async ({ legalActions }) => ({
+      action: legalActions[0] as OfcHandAction,
+    }));
+    const runner = createOfcGameRunner({
+      connection,
+      view,
+      deckForHand: () => createStandardDeck().map(serializeCard),
+      initialDealerSeat: 0,
+      aiSeats: [
+        {
+          player: { id: "ai-one", decide },
+          displayName: "Mina",
+          configuration: createAiConfiguration("easy"),
+        },
+      ],
+    });
+    await runner.start();
+
+    const firstHumanActions = await playLocalHumanTurnsUntilComplete(view);
+    expect(firstHumanActions).toBe(9);
+    expect(decide).toHaveBeenCalledTimes(9);
+    expect(view.latest.state?.revision).toBe(18);
+    expect(view.latest.showdown?.players).toHaveLength(2);
+    const firstScores = view.latest.players.map(({ score }) => score);
+    expect(firstScores.reduce((total, score) => total + score, 0)).toBe(0);
+
+    await expect(runner.startNextHand()).resolves.toBe(true);
+    await vi.waitFor(() => expect(view.latest.handNumber).toBe(2));
+    expect(view.latest.dealerSeat).toBe(1);
+    expect(view.latest.players.map(({ score }) => score)).toEqual(firstScores);
+
+    await playLocalHumanTurnsUntilComplete(view);
+    expect(decide).toHaveBeenCalledTimes(18);
+    expect(view.latest.state?.revision).toBe(18);
+    expect(view.latest.handNumber).toBe(2);
+    expect(
+      view.latest.players.reduce((total, player) => total + player.score, 0),
+    ).toBe(0);
+
+    render(
+      createElement(GameTableView, {
+        model: view.latest,
+        onAction: () => undefined,
+        onStartNextHand: () => undefined,
+        webglSupported: false,
+      }),
+    );
+    expect(screen.getByRole("heading", { name: "Showdown" })).toBeVisible();
+    expect(screen.getByText("Hand 2 complete")).toBeVisible();
+    expect(screen.getAllByText(/this hand/)).toHaveLength(2);
+    expect(
+      screen.getByRole("complementary", { name: "Scores" }),
+    ).toHaveTextContent("Alice (you)");
+    expect(
+      screen.getByRole("complementary", { name: "Scores" }),
+    ).toHaveTextContent("Mina · AI");
+
+    await runner.dispose();
   });
 });
