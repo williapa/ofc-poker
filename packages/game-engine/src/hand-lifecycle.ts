@@ -89,6 +89,9 @@ export type PlaceCardAction = EngineAction<PlaceSinglePayload> & {
 
 export type OfcHandAction = PlaceInitialCardsAction | PlaceCardAction;
 
+/** Creates stable unique IDs for legal-action candidates at one revision. */
+export type LegalActionIdFactory = (candidateIndex: number) => string;
+
 interface CardsPlacedPayload extends Readonly<Record<string, JsonValue>> {
   readonly playerId: PlayerId;
   readonly stage: "initial" | "single";
@@ -487,6 +490,81 @@ export function transitionOfcHand(
     );
   }
   return { accepted: true, state: applied.state, events: [event] };
+}
+
+/**
+ * Enumerates every action that the concrete OFC validator will accept for the
+ * requested player at the current revision. Non-active players have no legal
+ * actions. Candidate IDs are injected so callers retain control of identity.
+ */
+export function ofcHandLegalActions(
+  state: OfcHandState,
+  playerId: PlayerId,
+  createActionId: LegalActionIdFactory,
+): readonly OfcHandAction[] {
+  if (state.phase === "complete" || state.activePlayerId !== playerId)
+    return [];
+  const player = state.players.find(({ id }) => id === playerId);
+  if (player === undefined) return [];
+
+  const availableRows = (board: OfcBoard): readonly PlacementRow[] =>
+    (["front", "middle", "back"] as const).filter(
+      (row) => board[row].length < ROW_CAPACITY[row],
+    );
+  const candidates: OfcHandAction[] = [];
+
+  if (placedCardCount(player) === 0 && player.pendingCards.length === 5) {
+    const placements: CardPlacement[] = [];
+    const counts = {
+      front: player.board.front.length,
+      middle: player.board.middle.length,
+      back: player.board.back.length,
+    };
+    const visit = (cardIndex: number): void => {
+      if (cardIndex === player.pendingCards.length) {
+        const candidateIndex = candidates.length;
+        candidates.push({
+          schemaVersion: 1,
+          actionId: createActionId(candidateIndex),
+          expectedRevision: state.revision,
+          playerId,
+          type: "ofc.place-initial-cards",
+          payload: {
+            placements: placements.map((placement) => ({ ...placement })),
+          },
+        });
+        return;
+      }
+      const card = player.pendingCards[cardIndex];
+      if (card === undefined) return;
+      for (const row of ["front", "middle", "back"] as const) {
+        if (counts[row] >= ROW_CAPACITY[row]) continue;
+        counts[row] += 1;
+        placements.push({ card, row });
+        visit(cardIndex + 1);
+        placements.pop();
+        counts[row] -= 1;
+      }
+    };
+    visit(0);
+  } else if (player.pendingCards.length === 1) {
+    const card = player.pendingCards[0];
+    if (card !== undefined) {
+      for (const row of availableRows(player.board)) {
+        const candidateIndex = candidates.length;
+        candidates.push({
+          schemaVersion: 1,
+          actionId: createActionId(candidateIndex),
+          expectedRevision: state.revision,
+          playerId,
+          type: "ofc.place-card",
+          payload: { placement: { card, row } },
+        });
+      }
+    }
+  }
+
+  return deepFreeze(candidates);
 }
 
 function nextPlayerAfterPlacement(

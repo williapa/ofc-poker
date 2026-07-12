@@ -5,6 +5,7 @@ import {
   createOfcHandSnapshot,
   createStandardDeck,
   nextDealerSeat,
+  ofcHandLegalActions,
   ofcHandPlayerView,
   ofcHandPublicState,
   restoreOfcHandSnapshot,
@@ -469,6 +470,53 @@ describe("action and event validation", () => {
 });
 
 describe("transport projections and hand policy", () => {
+  test("enumerates only actions accepted by the concrete validator", () => {
+    let state = createHand();
+    const activePlayerId = state.activePlayerId!;
+    const initial = ofcHandLegalActions(
+      state,
+      activePlayerId,
+      (index) => `legal-initial-${index}`,
+    );
+
+    expect(initial).toHaveLength(232);
+    expect(ofcHandLegalActions(state, "player-1", () => "none")).toEqual([]);
+    for (const action of initial) {
+      expect(transitionOfcHand(state, action).accepted).toBe(true);
+    }
+
+    const chosen = initial.find(
+      (action) =>
+        action.type === "ofc.place-initial-cards" &&
+        action.payload.placements.filter(({ row }) => row === "front")
+          .length === 3,
+    )!;
+    const placed = transitionOfcHand(state, chosen);
+    if (!placed.accepted) throw new Error(placed.rejection.message);
+    state = placed.state;
+    const otherInitial = ofcHandLegalActions(
+      state,
+      state.activePlayerId!,
+      (index) => `other-${index}`,
+    )[0]!;
+    const otherPlaced = transitionOfcHand(state, otherInitial);
+    if (!otherPlaced.accepted) throw new Error(otherPlaced.rejection.message);
+    state = otherPlaced.state;
+
+    const singles = ofcHandLegalActions(
+      state,
+      activePlayerId,
+      (index) => `single-${index}`,
+    );
+    expect(singles.map((action) => action.payload)).toEqual([
+      { placement: { card: state.players[0]!.pendingCards[0], row: "middle" } },
+      { placement: { card: state.players[0]!.pendingCards[0], row: "back" } },
+    ]);
+    expect(
+      singles.every((action) => transitionOfcHand(state, action).accepted),
+    ).toBe(true);
+  });
+
   test("keeps pending cards private while exposing committed boards", () => {
     const state = createHand();
     const publicState = ofcHandPublicState(state);

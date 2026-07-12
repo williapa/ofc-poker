@@ -91,7 +91,10 @@ if (accepted.accepted) {
 Accepted actions are `PlaceInitialCardsAction` and `PlaceCardAction`. The single
 event type is `OfcHandEvent`. `ActionRejectionCode` and `EventRejectionCode`
 enumerate stable machine-readable rejection categories. `nextDealerSeat` exposes
-the standard clockwise rotation policy.
+the standard clockwise rotation policy. `ofcHandLegalActions` enumerates every
+currently valid initial-five or single-card action for the active player, using
+an injected action-ID factory. The same candidates can be presented to humans or
+AI players and are still submitted through `transitionOfcHand`.
 
 ## Board resolution and Fantasyland
 

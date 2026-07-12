@@ -124,3 +124,19 @@ Requirement references: R2 shareable multiplayer lobby transport, R5 two-to-four
 - Documented the verified SDK surface, public game-ID configuration, security boundaries, and manual two-browser sandbox procedure.
 
 R2, R5, R8, and R10 remain open until the client runner and complete product acceptance criteria are implemented and tested. No requirement is newly marked complete by this provider-only task.
+
+## 9. Build configurable AI players
+
+Status: complete (2026-07-12)
+
+Requirement references: R7 internally configurable AI players and R10 AI unit and simulation tests.
+
+- Added engine-enumerated OFC legal actions with injected stable IDs, covering every capacity-safe initial-five assignment and available row on single-card turns; every enumerated action is exercised through the ordinary engine validator.
+- Added easy, medium, and hard AI presets with baseline and heuristic strategies plus validated strength, risk-tolerance, royalty-preference, foul-avoidance, and optional injected think-delay parameters.
+- Added a seeded random source, uniform legal baseline selection, and a tunable heuristic that evaluates row ordering, draw potential, scoring opportunity, royalties, capacity, and present or projected foul risk using only player-visible state.
+- Added exhaustive deterministic Fantasyland arrangement across all `3 / 5 / 5` boards for a visible thirteen-card deal.
+- Added deterministic tests for initial-five placement, single-card turns, row-capacity pressure, near-foul choices, Fantasyland arrangement, configuration and delays, and repeatable decisions.
+- Added seeded simulations of 24 complete two-to-four-player games with mixed strategies, ordinary engine validation on every action, hang guards, and reported foul-rate diagnostics without flaky quality thresholds.
+- Documented the public AI API, presets, parameters, dependency injection, legal-action flow, and Fantasyland helper.
+
+R7 is complete. R10 remains open until all remaining product features are implemented and covered.
