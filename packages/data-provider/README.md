@@ -88,18 +88,40 @@ The automated suite spends no Playroom quota. To manually check the real service
 
 1. Create or select a Playroom project and copy its public game ID. No secret or
    account password belongs in the repository.
-2. In the future client composition root, pass that ID to
-   `PlayroomDataProvider`; keep it in an uncommitted local environment setting.
-3. Run `npm run dev`, create a two-seat multiplayer lobby, and open the generated
-   `?lobby=<room-code>` link in a separate browser profile.
-4. Enter distinct display names. Verify the peer action reaches only the host,
-   the host's update reaches both windows, and refreshing the peer restores its
-   seat and latest snapshot using the locally retained reconnect token.
-5. Try the same action twice, a stale revision, an out-of-turn action, and a
-   peer-side authoritative publication. Verify none changes the snapshot.
-6. Close the host and verify the peer receives `host-left` rather than becoming
-   host. Leave both windows and confirm subsequent UI mounts do not retain old
-   listeners.
+2. Start the production client composition with
+   `VITE_PLAYROOM_GAME_ID=<public-game-id> npm run dev`. Keep the value in an
+   uncommitted local environment setting. Loading the home page or using Local
+   AI must not initialize Playroom.
+3. Create a two-seat multiplayer lobby. Verify that the waiting room shows the
+   Playroom room code and that **Copy invite** copies a repository-page-safe
+   `?lobby=<room-code>` URL without a reconnect token.
+4. Open the link in a separate browser profile, enter a distinct display name,
+   and verify both clients show the same locked rules, seat order, presence, and
+   player count. Repeat with three and four profiles for the corresponding
+   configured capacities. The game must start only when the selected capacity
+   is connected, and an additional profile must see the full/started recovery
+   message.
+5. On each turn, verify only the acting client sees its pending card(s), while
+   committed public placements appear identically in every profile. Complete at
+   least one hand and compare showdown scores and boards in every window.
+6. Refresh a peer within the configured 60-second SDK grace period. The browser's
+   session-scoped reconnect capability must restore the same display name,
+   participant/seat, and latest snapshot. Then permanently leave and verify the
+   invalid saved capability tells the player to rejoin a waiting table or ask
+   the host for a new lobby. Reconnect tokens must never appear in the URL or
+   copied text.
+7. Refresh or close the host. This project deliberately has no host migration:
+   peers must see that the table closed, and the refreshed host must be told to
+   create and share a new lobby rather than silently joining as a peer.
+8. Try a nonexistent room code, disable the network during initialization, and
+   open a lobby built with an incompatible protocol version when such a fixture
+   is available. Verify each state gives a distinct explanation plus a path to
+   retry, return home, or create a new table.
+9. Leave all profiles, remount the client, and confirm old participants,
+   listeners, and messages do not reappear.
 
 The real sandbox check needs a Playroom account/project and is deliberately not
-part of automated tests or this provider-only prompt.
+part of automated tests. Playroom's selected free tier is documented as allowing
+10 daily users; confirm the current dashboard terms before testing and keep the
+number of browser identities within the project's quota. The automated adapter
+suite uses the fake boundary and spends no quota.

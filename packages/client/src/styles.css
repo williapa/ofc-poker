@@ -378,6 +378,17 @@ select {
   font-family: ui-monospace, monospace;
   font-size: 0.8rem;
 }
+.share-link-controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+.share-link-controls input {
+  min-width: 0;
+}
+.share-link-controls button {
+  flex: 0 0 auto;
+}
 .immutable-settings {
   margin: 2rem 0;
   padding: 1.4rem;
@@ -790,6 +801,30 @@ select {
 
 .game-waiting h2 {
   font-size: 2rem;
+}
+
+.game-recovery {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 2rem), 34rem);
+  padding: 1.5rem;
+  border: 1px solid #d67e6d;
+  background: #071b16fa;
+  box-shadow: 0 1.5rem 5rem #0009;
+  translate: -50% -50%;
+}
+
+.game-recovery h2 {
+  font-size: 2rem;
+}
+
+.game-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .game-showdown h2 {

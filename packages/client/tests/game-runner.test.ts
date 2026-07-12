@@ -302,6 +302,58 @@ describe("OFC game runner", () => {
     await hostRunner.dispose();
   });
 
+  test("rejects stale and malicious adapter payloads without mutating authority", async () => {
+    const transport = provider();
+    const hostConnection = (await transport.createLobby(settings, {
+      displayName: "Alice",
+    })) as OfcLobbyConnection;
+    const hostView = new FakeView();
+    const hostRunner = createOfcGameRunner({
+      connection: hostConnection,
+      view: hostView,
+      deckForHand: qualifyingDeck,
+    });
+    await hostRunner.start();
+    const peerConnection = (await transport.joinLobby(hostConnection.lobby.id, {
+      displayName: "Bob",
+    })) as OfcLobbyConnection;
+    const peerView = new FakeView();
+    const peerRunner = createOfcGameRunner({
+      connection: peerConnection,
+      view: peerView,
+      deckForHand: qualifyingDeck,
+    });
+    await peerRunner.start();
+    await vi.waitFor(() => expect(hostView.latest.state?.revision).toBe(0));
+
+    const results: Array<{ readonly accepted: boolean }> = [];
+    const unsubscribe = peerConnection.subscribe((message) => {
+      if (message.type === "action-result") results.push(message.result);
+    });
+    await peerConnection.submitAction({
+      requestId: "stale-request",
+      expectedRevision: 99,
+      action: peerView.latest.legalActions[0] as OfcHandAction,
+    });
+    await peerConnection.submitAction({
+      requestId: "malicious-request",
+      expectedRevision: 0,
+      action: {
+        schemaVersion: 999,
+        type: "malicious",
+        playerId: hostConnection.participant.id,
+        payload: { cards: "all-of-them" },
+      } as unknown as OfcHandAction,
+    });
+
+    await vi.waitFor(() => expect(results).toHaveLength(2));
+    expect(results.every(({ accepted }) => !accepted)).toBe(true);
+    expect(hostView.latest.state?.revision).toBe(0);
+    unsubscribe();
+    await peerRunner.dispose();
+    await hostRunner.dispose();
+  });
+
   test("runs a complete host-authoritative match and preserves totals, dealer, and Fantasyland", async () => {
     const transport = provider();
     const hostConnection = (await transport.createLobby(settings, {

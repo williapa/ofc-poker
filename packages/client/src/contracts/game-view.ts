@@ -21,7 +21,8 @@ export interface GameViewPlayer {
 export interface GameViewModel {
   readonly lobby: LobbyMetadata;
   readonly viewerId: PlayerId;
-  readonly connection: "connecting" | "connected" | "reconnecting" | "closed";
+  readonly connection:
+    "connecting" | "connected" | "reconnecting" | "disconnected" | "closed";
   readonly phase: "waiting" | "placing" | "complete" | "closed";
   readonly handNumber: number;
   readonly dealerSeat?: number;

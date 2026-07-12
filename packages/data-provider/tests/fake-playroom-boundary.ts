@@ -12,15 +12,22 @@ interface FakeRoom {
   readonly sessions: Map<string, FakePlayroomSession>;
   readonly hostId: string;
   readonly broadcasts: JsonValue[];
+  readonly transformBroadcast: (payload: JsonValue) => JsonValue;
 }
 
 export class FakePlayroomBoundary implements PlayroomBoundary {
   readonly #rooms = new Map<string, FakeRoom>();
   #sequence = 0;
   connectCount = 0;
+  transformBroadcast: (payload: JsonValue) => JsonValue = (payload) => payload;
 
   get broadcastPayloads(): readonly JsonValue[] {
     return [...this.#rooms.values()].flatMap((room) => room.broadcasts);
+  }
+
+  disconnect(playerId: string): void {
+    for (const room of this.#rooms.values())
+      room.sessions.get(playerId)?.emitDisconnect();
   }
 
   async connect(
@@ -32,7 +39,13 @@ export class FakePlayroomBoundary implements PlayroomBoundary {
     const id = `sdk-player-${++this.#sequence}`;
     if (!room) {
       const code = `ROOM-${this.#sequence}`;
-      room = { code, sessions: new Map(), hostId: id, broadcasts: [] };
+      room = {
+        code,
+        sessions: new Map(),
+        hostId: id,
+        broadcasts: [],
+        transformBroadcast: (payload) => this.transformBroadcast(payload),
+      };
       this.#rooms.set(code, room);
     }
     const session = new FakePlayroomSession(room, {
@@ -82,9 +95,10 @@ class FakePlayroomSession implements PlayroomBoundarySession {
   }
 
   async sendToAll(payload: JsonValue): Promise<void> {
-    this.#room.broadcasts.push(payload);
+    const broadcast = this.#room.transformBroadcast(payload);
+    this.#room.broadcasts.push(broadcast);
     for (const session of this.#room.sessions.values())
-      session.emitMessage({ payload, sender: this.#self });
+      session.emitMessage({ payload: broadcast, sender: this.#self });
   }
 
   onMessage(listener: (message: PlayroomBoundaryMessage) => void): Unsubscribe {
@@ -113,6 +127,9 @@ class FakePlayroomSession implements PlayroomBoundarySession {
   }
   emitJoin(player: PlayroomBoundaryPlayer): void {
     for (const listener of [...this.#joinListeners]) listener(player);
+  }
+  emitDisconnect(): void {
+    for (const listener of [...this.#disconnectListeners]) listener();
   }
 
   async leave(): Promise<void> {

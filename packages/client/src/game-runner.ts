@@ -4,6 +4,7 @@ import type {
   LobbyMetadata,
   ProviderMessage,
 } from "@ofcpoker/data-provider";
+import { DataProviderError } from "@ofcpoker/data-provider";
 import {
   completeOfcMatchHand,
   createOfcMatch,
@@ -202,6 +203,12 @@ class OfcGameRunner implements GameRunner {
         );
         break;
       case "participant-disconnected":
+        break;
+      case "connection-lost":
+        this.#connectionState = "disconnected";
+        this.#error =
+          "Connection lost. Reconnect from this browser to restore your reserved seat.";
+        this.#aiGeneration += 1;
         break;
       case "lobby-closed":
         this.#connectionState = "closed";
@@ -590,10 +597,18 @@ class OfcGameRunner implements GameRunner {
       [...this.#aiById.values()].map(async (seat) => seat.dispose?.()),
     );
     this.#dependencies.view.dispose();
-    if (this.#dependencies.disposeMode === "disconnect") {
-      await this.#dependencies.connection.disconnect();
-    } else {
-      await this.#dependencies.connection.dispose();
+    try {
+      if (this.#dependencies.disposeMode === "disconnect") {
+        await this.#dependencies.connection.disconnect();
+      } else {
+        await this.#dependencies.connection.dispose();
+      }
+    } catch (error) {
+      if (
+        !(error instanceof DataProviderError) ||
+        error.code !== "invalid-lifecycle"
+      )
+        throw error;
     }
   }
 }

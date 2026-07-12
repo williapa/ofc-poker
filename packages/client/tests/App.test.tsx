@@ -1,10 +1,15 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { LocalDataProvider, type LobbySettings } from "@ofcpoker/data-provider";
+import {
+  DataProviderError,
+  LocalDataProvider,
+  type LobbySettings,
+} from "@ofcpoker/data-provider";
 import type { OfcHandAction, OfcHandEvent } from "@ofcpoker/game-engine";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { App } from "../src/App";
 import type { ClientDataProvider, ProviderFactory } from "../src/providers";
 import type { OfcRunnerSnapshot } from "../src/contracts/game-runner";
+import { createMemoryLobbySessionStore } from "../src/reconnect";
 
 type TestProvider = LocalDataProvider<
   OfcHandAction,
@@ -139,6 +144,36 @@ test("creates a repository-base-safe multiplayer invite link", async () => {
   expect(factory.create).toHaveBeenCalledWith("multiplayer");
 });
 
+test("shows the room code and copies the multiplayer invite", async () => {
+  const provider = localProvider();
+  const writeText = vi.fn(async () => undefined);
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText },
+  });
+  render(
+    <App
+      providerFactory={factoryFor(provider)}
+      initialUrl="https://example.test/ofcpoker/"
+    />,
+  );
+
+  fireEvent.change(screen.getByLabelText("Display name"), {
+    target: { value: "Host" },
+  });
+  fireEvent.click(screen.getByRole("radio", { name: /Multiplayer/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Create table/ }));
+
+  expect(await screen.findByText("Room code")).toHaveTextContent("lobby-1");
+  fireEvent.click(screen.getByRole("button", { name: "Copy invite" }));
+  await waitFor(() =>
+    expect(writeText).toHaveBeenCalledWith(
+      "https://example.test/ofcpoker/?lobby=lobby-1",
+    ),
+  );
+  expect(screen.getByText("Invite link copied.")).toBeVisible();
+});
+
 describe("join flow", () => {
   const settings: LobbySettings = {
     schemaVersion: 1,
@@ -210,5 +245,117 @@ describe("join flow", () => {
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("could not be found"),
     );
+  });
+
+  test("shows a full-lobby recovery path", async () => {
+    const provider = localProvider();
+    const host = await provider.createLobby(
+      { ...settings, seatCount: 2 },
+      { displayName: "Host" },
+    );
+    await provider.joinLobby(host.lobby.id, { displayName: "First guest" });
+    render(
+      <App
+        providerFactory={factoryFor(provider)}
+        initialUrl={`https://example.test/ofcpoker/?lobby=${host.lobby.id}`}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Display name"), {
+      target: { value: "Extra guest" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Join lobby" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("already full");
+    expect(
+      screen.getByRole("link", { name: "Create a different table" }),
+    ).toBeVisible();
+  });
+
+  test.each([
+    ["initialization-failed" as const, "Multiplayer could not initialize"],
+    ["incompatible-version" as const, "incompatible game version"],
+  ])("shows recovery copy for %s", async (code, message) => {
+    const factory: ProviderFactory = {
+      create: vi.fn(async () => {
+        throw new DataProviderError(code, "provider detail");
+      }),
+    };
+    render(
+      <App
+        providerFactory={factory}
+        initialUrl="https://example.test/ofcpoker/?lobby=ROOM-FAIL"
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Display name"), {
+      target: { value: "Guest" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Join lobby" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(
+      screen.getByRole("link", { name: "Create a different table" }),
+    ).toBeVisible();
+  });
+
+  test("automatically restores a saved peer seat and current lobby state", async () => {
+    const provider = localProvider();
+    const host = await provider.createLobby(settings, { displayName: "Host" });
+    const peer = await provider.joinLobby(host.lobby.id, {
+      displayName: "Guest",
+    });
+    const participantId = peer.participant.id;
+    const store = createMemoryLobbySessionStore();
+    store.save({
+      schemaVersion: 1,
+      lobbyId: host.lobby.id,
+      reconnectToken: peer.reconnectToken,
+      role: "peer",
+    });
+    await peer.disconnect();
+    const factory = factoryFor(provider);
+
+    render(
+      <App
+        providerFactory={factory}
+        lobbySessionStore={store}
+        initialUrl={`https://example.test/ofcpoker/?lobby=${host.lobby.id}`}
+      />,
+    );
+
+    expect(await screen.findByText("Guest (you)")).toBeVisible();
+    expect(factory.create).toHaveBeenCalledWith("multiplayer");
+    expect(store.load(host.lobby.id)?.reconnectToken).toBe(peer.reconnectToken);
+    expect(
+      screen.getByRole("complementary", { name: "Scores" }),
+    ).toHaveTextContent("Guest (you)");
+    expect(participantId).toBeTruthy();
+  });
+
+  test("explains the no-host-reconnect policy and offers a new table", async () => {
+    const store = createMemoryLobbySessionStore();
+    store.save({
+      schemaVersion: 1,
+      lobbyId: "ROOM-HOST",
+      reconnectToken: "host-token",
+      role: "host",
+    });
+    const factory = factoryFor(localProvider());
+    render(
+      <App
+        providerFactory={factory}
+        lobbySessionStore={store}
+        initialUrl="https://example.test/ofcpoker/?lobby=ROOM-HOST"
+      />,
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "host session cannot be restored",
+    );
+    expect(
+      screen.getByRole("link", { name: "Create a different table" }),
+    ).toBeVisible();
+    expect(factory.create).not.toHaveBeenCalled();
+    expect(store.load("ROOM-HOST")).toBeUndefined();
   });
 });

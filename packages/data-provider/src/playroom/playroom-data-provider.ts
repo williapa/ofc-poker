@@ -161,6 +161,22 @@ function metadata<TSnapshot, TEvent>(
   });
 }
 
+function validateWireLobby<TSnapshot, TEvent>(
+  lobby: WireLobby<TSnapshot, TEvent>,
+): void {
+  if (
+    !isRecord(lobby) ||
+    lobby.schemaVersion !== 1 ||
+    !isRecord(lobby.settings) ||
+    lobby.settings.schemaVersion !== 1
+  ) {
+    throw new DataProviderError(
+      "incompatible-version",
+      "This lobby was created by an incompatible version of OFC Poker",
+    );
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -238,9 +254,16 @@ export class PlayroomDataProvider<
       const message = cause instanceof Error ? cause.message : String(cause);
       if (message.includes("ROOM_LIMIT_EXCEEDED"))
         throw new DataProviderError("lobby-full", "Lobby is full", { cause });
+      if (
+        message.includes("ROOM_MISSING") ||
+        message.includes("ROOM_NOT_FOUND")
+      )
+        throw new DataProviderError("lobby-missing", "Lobby was not found", {
+          cause,
+        });
       throw new DataProviderError(
-        "lobby-missing",
-        "Unable to join Playroom lobby",
+        "initialization-failed",
+        "Playroom could not initialize",
         {
           cause,
         },
@@ -393,6 +416,12 @@ export class PlayroomDataProvider<
     if (!welcome.accepted) {
       await session.leave();
       throw new DataProviderError(welcome.errorCode, "Playroom join rejected");
+    }
+    try {
+      validateWireLobby(welcome.lobby);
+    } catch (cause) {
+      await session.leave();
+      throw cause;
     }
     const connection = new PlayroomLobbyConnection<TAction, TSnapshot, TEvent>(
       session,
@@ -732,6 +761,7 @@ class PlayroomLobbyConnection<
     if (this.#state !== "connected") return;
     if (this.role === "host") await this.#closeLobby("host-left");
     else {
+      this.#emit({ type: "connection-lost" });
       this.#state = "disconnected";
       this.#listeners.clear();
       this.#cleanupNow();

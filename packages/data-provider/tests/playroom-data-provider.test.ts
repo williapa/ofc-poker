@@ -1,13 +1,20 @@
 import { describe, expect, test } from "vitest";
-import { DataProviderError, type LobbySettings } from "../src/index";
+import {
+  DataProviderError,
+  type JsonValue,
+  type LobbySettings,
+} from "../src/index";
 import {
   PlayroomDataProvider,
   createPlayroomLobbyLink,
+  type PlayroomBoundary,
 } from "../src/playroom/index";
 import { dataProviderContract, type TestProvider } from "./contract";
 import { FakePlayroomBoundary } from "./fake-playroom-boundary";
 
-function provider(boundary = new FakePlayroomBoundary()): PlayroomDataProvider {
+function provider(
+  boundary: PlayroomBoundary = new FakePlayroomBoundary(),
+): PlayroomDataProvider {
   let token = 0;
   return new PlayroomDataProvider({
     gameId: "public-test-game",
@@ -100,5 +107,68 @@ describe("PlayroomDataProvider adapter", () => {
         { displayName: "Host" },
       ),
     ).rejects.toMatchObject({ code: "invalid-settings" });
+  });
+
+  test("distinguishes a missing room from SDK initialization failure", async () => {
+    const missing = provider(new FakePlayroomBoundary());
+    await expect(
+      missing.joinLobby("DOES-NOT-EXIST", { displayName: "Peer" }),
+    ).rejects.toMatchObject({ code: "lobby-missing" });
+
+    const failed = provider({
+      connect: async () => {
+        throw new Error("SDK_BOOT_FAILED");
+      },
+    });
+    await expect(
+      failed.joinLobby("ROOM-1", { displayName: "Peer" }),
+    ).rejects.toMatchObject({ code: "initialization-failed" });
+  });
+
+  test("rejects an incompatible host protocol before exposing a connection", async () => {
+    const boundary = new FakePlayroomBoundary();
+    const dataProvider = provider(boundary);
+    const host = await dataProvider.createLobby(settings, {
+      displayName: "Host",
+    });
+    boundary.transformBroadcast = (payload) => {
+      const record = payload as { readonly [key: string]: JsonValue };
+      if (
+        typeof payload === "object" &&
+        payload !== null &&
+        !Array.isArray(payload) &&
+        record.kind === "welcome" &&
+        record.accepted === true
+      ) {
+        return {
+          ...record,
+          lobby: { ...(record.lobby as object), schemaVersion: 99 },
+        } as JsonValue;
+      }
+      return payload;
+    };
+
+    await expect(
+      dataProvider.joinLobby(host.lobby.id, { displayName: "Peer" }),
+    ).rejects.toMatchObject({ code: "incompatible-version" });
+    await dataProvider.dispose();
+  });
+
+  test("reports unexpected peer disconnects before cleaning listeners", async () => {
+    const boundary = new FakePlayroomBoundary();
+    const dataProvider = provider(boundary);
+    const host = await dataProvider.createLobby(settings, {
+      displayName: "Host",
+    });
+    const peer = await dataProvider.joinLobby(host.lobby.id, {
+      displayName: "Peer",
+    });
+    const messages: string[] = [];
+    peer.subscribe((message) => messages.push(message.type));
+
+    boundary.disconnect(peer.participant.id);
+
+    expect(messages).toContain("connection-lost");
+    await dataProvider.dispose();
   });
 });

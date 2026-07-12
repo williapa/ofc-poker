@@ -216,3 +216,42 @@ Requirement references: R4 multi-hand score, dealer, and Fantasyland continuity;
 - Retained the existing deterministic multi-hand runner coverage that proves Fantasyland qualification, hidden placement, reveal, score preservation, and dealer rotation across hands.
 
 R6 is complete. R4, R5, R10, and R11 remain open pending the later multiplayer hardening, deployment, and whole-product acceptance prompts.
+
+## 15. Deliver the complete multiplayer lobby flow
+
+Status: complete (2026-07-12)
+
+Requirement references: R2 invite-by-link multiplayer lobbies, R4 synchronized
+host-authoritative play, R5 two-to-four-player capacity, R8 fixed lobby rules,
+R10 adapter/client integration coverage, and R11 multiplayer journey coverage.
+
+- Completed production client composition around the dynamically loaded
+  Playroom provider, with visible room codes, repository-page-safe invite URLs,
+  clipboard copy feedback, fixed settings, occupied/open seats, and
+  capacity-driven start behavior.
+- Added session-scoped peer reconnect capability persistence outside the URL.
+  Refresh restores the same provider identity, reserved seat, metadata, and
+  latest authoritative snapshot during the provider grace period; expired
+  tokens give a precise rejoin/new-lobby path.
+- Kept the documented no-host-migration policy explicit: host refresh/departure
+  closes the lobby, peers receive closure feedback, and the prior host is told to
+  create and share a new lobby.
+- Added distinct missing, full, active, closed, incompatible-version,
+  initialization-failure, and connection-loss messages with retry, reconnect,
+  return-home, or new-table actions as appropriate.
+- Preserved trusted SDK sender identity and host authority while adding
+  integration coverage proving spoofed, malformed, duplicate, and stale actions
+  do not change authoritative state.
+- Made multiplayer runner cleanup reconnect-preserving on remount/refresh and
+  explicit leave permanent, with repeatable provider/session/listener cleanup.
+- Expanded fake-boundary, runner, component, and application tests for protocol
+  compatibility, SDK failures, transport loss, automatic peer restoration,
+  host recovery policy, room-code/copy UX, and recovery controls without using
+  Playroom quota.
+- Updated the real Playroom smoke procedure for two to four browser profiles,
+  privacy/synchronization, reconnect and host lifecycle, failure states,
+  cleanup, and the documented 10-daily-user free-tier constraint.
+
+No product requirement is newly marked complete: real-service behavior remains
+covered by the documented manual smoke test rather than CI, and the final
+whole-product/deployment prompts still need to close the aggregate requirements.

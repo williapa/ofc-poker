@@ -293,6 +293,32 @@ test("announces reconnect progress before placement resumes", () => {
   expect(screen.getByText("Reconnecting to table")).toBeVisible();
 });
 
+test("offers reconnect and exit actions after a connection loss", () => {
+  const onReconnect = vi.fn();
+  const onLeave = vi.fn();
+  render(
+    <GameTableView
+      model={model(2, {
+        connection: "disconnected",
+        isLocalTurn: false,
+        error: "Connection lost.",
+      })}
+      onAction={() => undefined}
+      onReconnect={onReconnect}
+      onLeave={onLeave}
+      webglSupported={false}
+    />,
+  );
+
+  expect(
+    screen.getByText("Your seat is reserved for a short time."),
+  ).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Reconnect" }));
+  fireEvent.click(screen.getByRole("button", { name: "Return home" }));
+  expect(onReconnect).toHaveBeenCalledOnce();
+  expect(onLeave).toHaveBeenCalledOnce();
+});
+
 test("represents an opponent Fantasyland board with consistent face-down information", () => {
   const state = visibleState(2);
   const fantasylandState: OfcPlayerVisibleState = {

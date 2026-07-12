@@ -80,6 +80,7 @@ export type ProviderMessage<TAction, TSnapshot, TEvent> =
       readonly type: "participant-disconnected";
       readonly participantId: ParticipantId;
     }
+  | { readonly type: "connection-lost" }
   | { readonly type: "lobby-closed"; readonly reason: LobbyClosedReason };
 
 export type DataProviderErrorCode =
@@ -94,6 +95,8 @@ export type DataProviderErrorCode =
   | "not-host"
   | "unknown-request"
   | "stale-update"
+  | "incompatible-version"
+  | "initialization-failed"
   | "provider-disposed"
   | "injected-error";
 

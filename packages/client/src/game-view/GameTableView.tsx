@@ -1,6 +1,7 @@
 import {
   Component,
   useMemo,
+  useRef,
   useState,
   type ErrorInfo,
   type ReactNode,
@@ -54,6 +55,7 @@ export interface GameTableViewProps {
   readonly onAction: (action: OfcHandAction) => void;
   readonly onStartNextHand?: () => void;
   readonly onLeave?: () => void;
+  readonly onReconnect?: () => void;
   readonly inviteUrl?: string;
   /** Deterministic override for tests and known constrained embeds. */
   readonly webglSupported?: boolean;
@@ -107,6 +109,7 @@ function cardName(code: CardCode): string {
 function phaseStatus(model: Readonly<GameViewModel>): string {
   if (model.error) return model.error;
   if (model.connection === "reconnecting") return "Reconnecting to table";
+  if (model.connection === "disconnected") return "Connection lost";
   if (model.phase === "waiting") return "Waiting for players";
   if (model.phase === "complete") return "Showdown";
   if (model.phase === "closed") return "Table closed";
@@ -228,6 +231,7 @@ export function GameTableView({
   onAction,
   onStartNextHand,
   onLeave,
+  onReconnect,
   inviteUrl,
   webglSupported,
 }: GameTableViewProps) {
@@ -241,6 +245,10 @@ export function GameTableView({
     readonly selectedCard?: CardCode;
     readonly assignments: Partial<Record<CardCode, PlacementRow>>;
   }>({ key: interactionKey, assignments: {} });
+  const inviteInputRef = useRef<HTMLInputElement>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">(
+    "idle",
+  );
   const selectedCard =
     interaction.key === interactionKey ? interaction.selectedCard : undefined;
   const assignments =
@@ -301,6 +309,20 @@ export function GameTableView({
           pendingCards.length,
     );
     if (initialAction !== undefined) onAction(initialAction);
+  }
+
+  async function copyInvite(): Promise<void> {
+    if (!inviteUrl) return;
+    try {
+      if (!navigator.clipboard?.writeText)
+        throw new Error("Clipboard API unavailable");
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopyStatus("copied");
+    } catch {
+      inviteInputRef.current?.focus();
+      inviteInputRef.current?.select();
+      setCopyStatus("failed");
+    }
   }
 
   return (
@@ -371,18 +393,78 @@ export function GameTableView({
             {model.players.length} of {model.lobby.settings.seatCount} players
             seated.
           </p>
+          <p className="lobby-code">
+            Room code <strong>{model.lobby.id}</strong>
+          </p>
           {inviteUrl ? (
             <div className="share-link">
               <label htmlFor="game-invite-link">Invite link</label>
-              <input
-                id="game-invite-link"
-                readOnly
-                value={inviteUrl}
-                onFocus={(event) => event.currentTarget.select()}
-              />
+              <div className="share-link-controls">
+                <input
+                  id="game-invite-link"
+                  ref={inviteInputRef}
+                  readOnly
+                  value={inviteUrl}
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => void copyInvite()}
+                >
+                  Copy invite
+                </button>
+              </div>
+              <p className="field-note" role="status" aria-live="polite">
+                {copyStatus === "copied"
+                  ? "Invite link copied."
+                  : copyStatus === "failed"
+                    ? "Copy was blocked; the link is selected for manual copying."
+                    : "Share this link with the remaining players."}
+              </p>
             </div>
           ) : null}
           <p>Settings cannot be changed after creation.</p>
+        </section>
+      ) : null}
+
+      {model.connection === "disconnected" || model.phase === "closed" ? (
+        <section className="game-recovery" aria-labelledby="recovery-title">
+          <p className="step">
+            {model.connection === "disconnected"
+              ? "Connection interrupted"
+              : "Table closed"}
+          </p>
+          <h2 id="recovery-title">
+            {model.connection === "disconnected"
+              ? "Your seat is reserved for a short time."
+              : "This game can’t continue."}
+          </h2>
+          <p>
+            {model.connection === "disconnected"
+              ? "Reconnect from this browser to restore your seat and the latest game state."
+              : (model.error ?? "Return home to create or join another table.")}
+          </p>
+          <div className="game-recovery-actions">
+            {model.connection === "disconnected" && onReconnect ? (
+              <button
+                className="primary-button"
+                type="button"
+                onClick={onReconnect}
+              >
+                Reconnect
+              </button>
+            ) : null}
+            {onLeave ? (
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={onLeave}
+              >
+                Return home
+              </button>
+            ) : null}
+          </div>
         </section>
       ) : null}
 

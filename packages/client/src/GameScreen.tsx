@@ -17,6 +17,7 @@ import { createLocalAiSeats } from "./local-ai";
 export interface GameScreenProps {
   readonly connection: OfcLobbyConnection;
   readonly onLeave: () => void;
+  readonly onReconnect?: () => void;
   readonly inviteUrl?: string;
 }
 
@@ -31,6 +32,7 @@ function aiSeatsFor(connection: OfcLobbyConnection) {
 export function GameScreen({
   connection,
   onLeave,
+  onReconnect,
   inviteUrl,
 }: GameScreenProps) {
   const [model, setModel] = useState<Readonly<GameViewModel>>();
@@ -66,6 +68,10 @@ export function GameScreen({
       aiSeats: aiSeatsFor(connection),
       deckForHand: () =>
         shuffleDeck(Math.random, createStandardDeck()).map(serializeCard),
+      disposeMode:
+        connection.lobby.settings.mode === "multiplayer"
+          ? "disconnect"
+          : "leave",
     });
     void gameRunner.start().then(
       () => {
@@ -87,9 +93,16 @@ export function GameScreen({
   if (!model) {
     return (
       <main className="centered-shell">
-        <p role={startError ? "alert" : "status"}>
-          {startError ?? "Taking your seat…"}
-        </p>
+        <section className="join-card">
+          <p role={startError ? "alert" : "status"}>
+            {startError ?? "Taking your seat…"}
+          </p>
+          {startError ? (
+            <button className="primary-button" type="button" onClick={onLeave}>
+              Return home
+            </button>
+          ) : null}
+        </section>
       </main>
     );
   }
@@ -99,7 +112,17 @@ export function GameScreen({
       model={model}
       onAction={bridge.emit}
       onStartNextHand={() => void runner?.startNextHand()}
-      onLeave={onLeave}
+      onLeave={() => {
+        void (async () => {
+          try {
+            await runner?.dispose();
+            await connection.leave();
+          } finally {
+            onLeave();
+          }
+        })();
+      }}
+      {...(onReconnect ? { onReconnect } : {})}
       {...(inviteUrl ? { inviteUrl } : {})}
     />
   );

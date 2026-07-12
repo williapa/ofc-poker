@@ -20,10 +20,16 @@ import {
   type ClientDataProvider,
   type ProviderFactory,
 } from "./providers";
+import {
+  createBrowserLobbySessionStore,
+  createMemoryLobbySessionStore,
+  type LobbySessionStore,
+} from "./reconnect";
 
 export interface AppProps {
   readonly providerFactory?: ProviderFactory;
   readonly initialUrl?: string;
+  readonly lobbySessionStore?: LobbySessionStore;
 }
 
 function currentUrl(initialUrl?: string): URL {
@@ -41,6 +47,12 @@ function readableError(error: unknown): string {
         return "That game has already started.";
       case "lobby-closed":
         return "That lobby is closed. Ask the host for a new link.";
+      case "invalid-reconnect-token":
+        return "Your saved seat has expired. Rejoin if the table is still waiting; if the game started, ask the host to create a new lobby.";
+      case "incompatible-version":
+        return "This lobby uses an incompatible game version. Return home and create a new table.";
+      case "initialization-failed":
+        return "Multiplayer could not initialize. Check your connection, then try again or play Local AI.";
       default:
         return error.message;
     }
@@ -363,7 +375,11 @@ function InvalidJoinScreen({
   );
 }
 
-export function App({ providerFactory, initialUrl }: AppProps) {
+export function App({
+  providerFactory,
+  initialUrl,
+  lobbySessionStore,
+}: AppProps) {
   const baseUrl = useMemo(() => currentUrl(initialUrl), [initialUrl]);
   const factory = useMemo(
     () =>
@@ -375,22 +391,40 @@ export function App({ providerFactory, initialUrl }: AppProps) {
       }),
     [providerFactory],
   );
+  const sessionStore = useMemo(
+    () =>
+      lobbySessionStore ??
+      (initialUrl
+        ? createMemoryLobbySessionStore()
+        : createBrowserLobbySessionStore()),
+    [initialUrl, lobbySessionStore],
+  );
   const [route, setRoute] = useState<AppRoute>(() => parseAppRoute(baseUrl));
   const [connection, setConnection] = useState<OfcLobbyConnection>();
   const [provider, setProvider] = useState<ClientDataProvider>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const reconnectAttempted = useRef(false);
 
   useEffect(
     () => () => {
-      void connection?.dispose();
-      void provider?.dispose();
+      void (async () => {
+        try {
+          if (connection?.lobby.settings.mode === "multiplayer")
+            await connection.disconnect();
+          else await connection?.dispose();
+        } catch {
+          // The game screen may already have completed explicit leave cleanup.
+        }
+        await provider?.dispose();
+      })();
     },
     [connection, provider],
   );
 
   function navigateHome() {
-    void connection?.dispose();
+    if (connection) sessionStore.remove(connection.lobby.id);
+    void connection?.leave();
     void provider?.dispose();
     setConnection(undefined);
     setProvider(undefined);
@@ -411,6 +445,12 @@ export function App({ providerFactory, initialUrl }: AppProps) {
       );
       setProvider(nextProvider);
       setConnection(nextConnection);
+      sessionStore.save({
+        schemaVersion: 1,
+        lobbyId: nextConnection.lobby.id,
+        reconnectToken: nextConnection.reconnectToken,
+        role: nextConnection.role,
+      });
       if (values.mode === "multiplayer" && !initialUrl) {
         window.history.pushState(
           {},
@@ -438,6 +478,12 @@ export function App({ providerFactory, initialUrl }: AppProps) {
       });
       setProvider(nextProvider);
       setConnection(nextConnection);
+      sessionStore.save({
+        schemaVersion: 1,
+        lobbyId: nextConnection.lobby.id,
+        reconnectToken: nextConnection.reconnectToken,
+        role: nextConnection.role,
+      });
     } catch (cause) {
       await nextProvider?.dispose();
       setError(readableError(cause));
@@ -446,11 +492,72 @@ export function App({ providerFactory, initialUrl }: AppProps) {
     }
   }
 
+  useEffect(() => {
+    if (route.page !== "join" || connection || reconnectAttempted.current)
+      return;
+    reconnectAttempted.current = true;
+    const saved = sessionStore.load(route.lobbyId);
+    if (!saved) return;
+    if (saved.role === "host") {
+      sessionStore.remove(route.lobbyId);
+      queueMicrotask(() =>
+        setError(
+          "The host session cannot be restored after a refresh. The previous lobby was closed; create a new table and share its new link.",
+        ),
+      );
+      return;
+    }
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setBusy(true);
+      setError(undefined);
+      let nextProvider: ClientDataProvider | undefined;
+      void factory
+        .create("multiplayer")
+        .then(async (createdProvider) => {
+          nextProvider = createdProvider;
+          const nextConnection = await createdProvider.reconnectLobby(
+            route.lobbyId,
+            saved.reconnectToken,
+          );
+          if (cancelled) {
+            await nextConnection.disconnect();
+            await createdProvider.dispose();
+            return;
+          }
+          setProvider(createdProvider);
+          setConnection(nextConnection);
+          sessionStore.save({
+            schemaVersion: 1,
+            lobbyId: nextConnection.lobby.id,
+            reconnectToken: nextConnection.reconnectToken,
+            role: nextConnection.role,
+          });
+        })
+        .catch(async (cause: unknown) => {
+          sessionStore.remove(route.lobbyId);
+          await nextProvider?.dispose();
+          if (!cancelled) setError(readableError(cause));
+        })
+        .finally(() => {
+          if (!cancelled) setBusy(false);
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [connection, factory, route, sessionStore]);
+
   if (connection) {
     return (
       <GameScreen
         connection={connection}
         onLeave={navigateHome}
+        onReconnect={() => {
+          if (!initialUrl) window.location.reload();
+        }}
         {...(connection.lobby.settings.mode === "multiplayer"
           ? { inviteUrl: createJoinUrl(baseUrl, connection.lobby.id) }
           : {})}

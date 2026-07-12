@@ -74,6 +74,13 @@ no Playroom quota. The optional real-service, two-browser sandbox procedure and
 its public game-ID setup are documented in `packages/data-provider/README.md`.
 Account credentials and reconnect tokens must not be committed.
 
+The complete manual procedure now covers two-, three-, and four-browser
+capacity, private-card visibility, peer refresh/reconnect, host closure, full and
+missing rooms, initialization and compatibility failures, cleanup, and the
+documented 10-daily-user free-tier constraint. Peer reconnect capabilities are
+stored only in that browser profile's session storage; host sessions are not
+recoverable under the project's no-host-migration policy.
+
 Generated `dist`, TypeScript build-info, coverage, and browser-test artifacts are ignored by git.
 
 ## Deployment
