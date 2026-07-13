@@ -281,3 +281,20 @@ whole-product unit/integration quality, and R11 accessibility foundations.
 
 R10 is complete. R11 remains open for the broader browser journey automation in
 the next prompt; R13 remains open until GitHub Pages deployment is implemented.
+
+## 17. Improve table card readability and pending placement feedback
+
+Status: complete (2026-07-12)
+
+Requirement references: R9 readable minimal 3D game UI, R10 unit tests, and R11 browser interaction coverage.
+
+- Increased each 3D card to more than twice its previous area and enlarged the rank and suit artwork within the card face.
+- Preserved every seat position while presenting all player boards upright with the standard `3 / 5 / 5` row order.
+- Spaced the local hand below the back row and adjusted table geometry so the larger cards remain within the table framing.
+- Projected initial-five assignments into local board slots immediately, removed staged cards from the hand, kept the proposal private until confirmation, and allowed staged cards to be selected and moved.
+- Added component assertions for card scale, upright seats, pending-card movement, and staged-card reselection.
+- Enlarged the cards by another 59% over the first readability pass, expanded the table layout, and removed the visible duplicate hand controls beside the confirmation action while retaining screen-reader placement controls.
+- Removed the footer layer entirely, moved confirmation and next-hand actions into the top HUD, and visually hid the redundant row-list panel so neither overlay intercepts table interactions or obscures the fourth seat.
+- Replaced the splash-page numeric motif with three centered slot rows of `3 / 5 / 5`, slowed local AI presentation to 850–1,050 ms, simplified card faces to one central suit, and added reduced-motion-safe attention animation to enabled confirm and next-hand actions.
+
+Requirements R9 and R11 remain open pending complete product-level visual and end-to-end acceptance. R10 remains complete for the behavior implemented so far.

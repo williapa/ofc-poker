@@ -1,0 +1,27 @@
+# Prompt 17 - UI Improvements
+
+Make the following changes to the current UI to improve the readibility and utility.
+
+## Goals
+- Improve the readability of the cards - the card size and font size are both too small. Also, the orientation change (rotating the card slots for opponent table seats) makes the cards too hard to read - they should have the same orientation for each seat.
+- Improve the card UI table interactions. The hand cards currently overlap with the lower slot, which is confusing. The hand cards should be below the lowest row of slots, with no overlap. Also, when placing the first 5 cards, they should move to the proposed slot once clicked, even if it hasn't been confirmed. 
+
+
+## Acceptance Criteria
+- The card size is a larger percent of the screen - at least double the total area.
+- the card font size is a larger percentage of the card - it should be big.
+- Player card rows should be positioned at the same spots on the table, but not rotated. The top row is always 3 cards, with two 5 card rows below.
+- The player's hand cards should not overlap with their slots - the cards should be positioned below the card slots without overlap.
+- When placing the first 5 cards, they should move to the pending position in the hand slots before they are confirmed, instead of staying in the hand position on the table. This position doesn't have to be broadcast to the other clients until confirmed.
+
+## Usage
+2 percent - initial prompt
+4 percent - follow ups to get additional size increases, to replace confirm button and hide right panel
+5 hour usage was dropped so the percents now reflect weekly quota, not the 5 hour quota.
+4 percent - additional criteria
+
+## Additional Criteria
+- remove footer (only replace action button to top left, not the cards from footer).
+- remove the right panel.
+- Splash page currently includes 3 card slot outlines with the numbers "3", "5" and "5" inside. This content should be changed to show 3 rows of card slot outlines, the top row with 3 slots, and the bottom rows with 5. No numbers need to be inside the slots.
+- increase the delay between AI moves.

@@ -17,22 +17,22 @@ export interface GameCameraLayout {
 }
 
 const POSITIONS: Readonly<
-  Record<number, readonly (readonly [number, number, number, number])[]>
+  Record<number, readonly (readonly [number, number, number])[]>
 > = Object.freeze({
   2: [
-    [0, 0, 3.55, 0],
-    [0, 0, -3.55, Math.PI],
+    [0, 0, 3.6],
+    [0, 0, -3.6],
   ],
   3: [
-    [0, 0, 3.75, 0],
-    [-5.15, 0, -0.9, Math.PI / 2],
-    [5.15, 0, -0.9, -Math.PI / 2],
+    [0, 0, 3.7],
+    [-5.8, 0, -1],
+    [5.8, 0, -1],
   ],
   4: [
-    [0, 0, 3.75, 0],
-    [-5.15, 0, 0, Math.PI / 2],
-    [0, 0, -3.75, Math.PI],
-    [5.15, 0, 0, -Math.PI / 2],
+    [0, 0, 4.8],
+    [-6.3, 0, 0],
+    [0, 0, -4.8],
+    [6.3, 0, 0],
   ],
 });
 
@@ -59,7 +59,7 @@ export function createSeatLayout(
       seat: player.seat,
       relativeSeat,
       position: [placement[0], placement[1], placement[2]] as const,
-      rotationY: placement[3],
+      rotationY: 0,
       isLocal: player.id === viewerId,
     });
   });

@@ -13,9 +13,7 @@ test("creates a local AI lobby from the accessible setup form", async ({
   await page.getByRole("combobox", { name: "Players" }).selectOption("4");
   await page.getByRole("button", { name: /Create table/ }).click();
 
-  await expect(
-    page.getByRole("heading", { name: "Open Face Chinese Poker" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "OFC Poker" })).toBeVisible();
   await expect(
     page.getByRole("complementary", { name: "Scores" }),
   ).toBeVisible();
@@ -26,10 +24,17 @@ test("creates a local AI lobby from the accessible setup form", async ({
     .getByRole("button");
   await expect(cards).toHaveCount(5);
   for (let index = 0; index < 5; index += 1) {
-    await cards.nth(index).click();
-    await page.getByRole("button", { name: "Place in Back" }).click();
+    await cards.first().press("Enter");
+    await page.getByRole("button", { name: "Place in Back" }).press("Enter");
+    await expect(cards).toHaveCount(4 - index);
   }
-  await expect(page.getByText(/Staged:/)).toBeVisible();
+  await expect(page.getByRole("group", { name: "Card controls" })).toHaveCount(
+    0,
+  );
+  await expect(page.locator(".game-dom-board")).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Accessible game board" }),
+  ).toHaveClass("game-accessible-board");
   await page.getByRole("button", { name: "Confirm initial five" }).click();
   await expect(page.getByLabel(/Back row, 5 committed/).first()).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);

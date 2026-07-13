@@ -26,17 +26,17 @@ export const LOCAL_AI_PROFILE_REGISTRY: Readonly<
   steady: Object.freeze({
     displayName: "Mina",
     difficulty: "medium",
-    overrides: Object.freeze({ thinkDelayMs: 450 }),
+    overrides: Object.freeze({ thinkDelayMs: 850 }),
   }),
   bold: Object.freeze({
     displayName: "Theo",
     difficulty: "medium",
-    overrides: Object.freeze({ riskTolerance: 0.65, thinkDelayMs: 550 }),
+    overrides: Object.freeze({ riskTolerance: 0.65, thinkDelayMs: 950 }),
   }),
   careful: Object.freeze({
     displayName: "Iris",
     difficulty: "hard",
-    overrides: Object.freeze({ royaltyPreference: 0.65, thinkDelayMs: 650 }),
+    overrides: Object.freeze({ royaltyPreference: 0.65, thinkDelayMs: 1050 }),
   }),
 });
 

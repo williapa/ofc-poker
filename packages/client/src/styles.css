@@ -128,18 +128,22 @@ h2 {
 .board-motif {
   position: relative;
   z-index: 1;
-  display: flex;
-  gap: 0.55rem;
-}
-.board-motif span {
   display: grid;
-  width: 2.45rem;
-  height: 3.35rem;
-  place-items: center;
+  width: fit-content;
+  gap: 0.32rem;
+}
+
+.board-motif-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.32rem;
+}
+
+.board-motif span {
+  width: 1.75rem;
+  height: 2.4rem;
   border: 1px solid rgb(231 189 104 / 28%);
   border-radius: 0.25rem;
-  color: #739087;
-  font-family: Georgia, serif;
 }
 
 .setup-panel {
@@ -474,6 +478,10 @@ select {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+
+  .game-attention-action {
+    animation: none !important;
+  }
 }
 
 /* Game-view design system. WebGL remains presentation-only; every state and
@@ -484,7 +492,7 @@ select {
   display: grid;
   min-height: 100dvh;
   overflow: hidden;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   color: #eee9dc;
   background: #09251e;
 }
@@ -502,24 +510,20 @@ select {
 }
 
 .game-hud,
-.game-scoreboard,
-.game-dom-board,
-.game-controls {
+.game-scoreboard {
   position: relative;
   z-index: 2;
   pointer-events: none;
 }
 
 .game-hud button,
-.game-scoreboard button,
-.game-dom-board button,
-.game-controls button {
+.game-scoreboard button {
   pointer-events: auto;
 }
 
 .game-hud-top {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   align-items: center;
   gap: 1rem;
   padding: 1rem clamp(1rem, 3vw, 2.5rem);
@@ -556,6 +560,13 @@ select {
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 0.25rem;
+}
+
+.game-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  pointer-events: auto;
 }
 
 .game-scoreboard {
@@ -597,172 +608,23 @@ select {
   color: #f2c96d;
 }
 
-.game-dom-board {
-  position: absolute;
-  top: 5.2rem;
-  right: 1rem;
-  width: min(17rem, 28vw);
-  max-height: calc(100dvh - 14rem);
-  overflow: auto;
-  border: 1px solid #456159;
-  background: #071b16e8;
-  scrollbar-color: #456159 transparent;
-}
-
-.game-dom-board > section {
-  padding: 0.7rem;
-  border-bottom: 1px solid #29463e;
-}
-
-.game-dom-board > section:last-child {
-  border-bottom: 0;
-}
-
-.game-dom-board h2 {
-  margin-bottom: 0.4rem;
-  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.game-row-list {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.game-dom-row {
-  display: grid;
-  grid-template-columns: 5.5rem 1fr;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 1.55rem;
-  color: #a8bbb4;
-  font-size: 0.66rem;
-}
-
-.game-dom-row strong {
-  color: #e6e0d4;
-}
-
-.game-card-names {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.game-dom-row button {
-  grid-column: 1 / -1;
-  min-height: 1.9rem;
-  border: 1px solid #77d7a5;
-  color: #e4f8ed;
-  background: #174f3c;
-  cursor: pointer;
-  font-size: 0.68rem;
-}
-
-.game-dom-row button:disabled {
-  border-color: #637a72;
-  color: #8ca098;
-  background: #183129;
-}
-
-.game-controls {
-  align-self: end;
-  display: grid;
-  gap: 0.65rem;
-  padding: 0.8rem clamp(1rem, 3vw, 2.5rem) 1rem;
-  border-top: 1px solid rgb(231 189 104 / 20%);
-  background: linear-gradient(#071b16ba, #071b16f5 30%);
-}
-
-.pending-cards {
-  display: flex;
-  min-height: 3.7rem;
-  align-items: stretch;
-  justify-content: center;
-  gap: 0.45rem;
-}
-
-.pending-cards > p {
-  margin: auto;
-  color: #8fa49c;
-  font-size: 0.75rem;
-}
-
-.pending-cards button {
-  display: grid;
-  min-width: 5rem;
-  align-content: center;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid #587068;
-  border-radius: 0.25rem;
-  color: #1b211e;
-  background: #f7f2e8;
-  cursor: pointer;
-  transition:
-    translate var(--game-motion-duration),
-    border-color var(--game-motion-duration),
-    box-shadow var(--game-motion-duration);
-}
-
-.pending-cards button[aria-pressed="true"] {
-  border-color: #f2c96d;
-  box-shadow: 0 0 0 3px #f2c96d;
-  translate: 0 -0.3rem;
-}
-
-.pending-cards button:disabled {
-  cursor: not-allowed;
-  opacity: 0.62;
-}
-
-.pending-cards button > span:first-child {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.pending-cards button > span:nth-child(2) {
+.game-accessible-hand,
+.game-accessible-board {
   position: absolute;
   width: 1px;
   height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   white-space: nowrap;
 }
 
-.pending-cards button small {
-  color: #42534c;
-  font-size: 0.58rem;
-  font-weight: 700;
-}
-
-.game-error {
-  margin: 0;
-  padding: 0.55rem 0.75rem;
-  border-left: 3px solid #dc8c7c;
-  color: #ffd7cf;
-  background: #612f2a;
-}
-
-.game-controls > .primary-button {
-  width: min(100%, 20rem);
-  justify-self: center;
-}
-
-.game-staged-cards {
-  grid-column: 1 / -1;
-  padding: 0.25rem 0.4rem;
-  border-left: 2px solid #f2c96d;
-  color: #f3d89f;
-  background: #4a3b1c;
-}
-
 .confirm-placement-button {
-  width: min(100%, 24rem);
-  min-height: 2.8rem;
-  justify-self: center;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem;
   border: 1px solid #d3a855;
   color: #102119;
   background: #d7ad5b;
@@ -773,6 +635,23 @@ select {
 .confirm-placement-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.game-attention-action:not(:disabled) {
+  animation: game-action-pulse 1.65s ease-in-out infinite;
+}
+
+@keyframes game-action-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(242 201 109 / 20%);
+    filter: brightness(1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 0.38rem rgb(242 201 109 / 24%);
+    filter: brightness(1.14);
+  }
 }
 
 .game-showdown {
@@ -893,10 +772,6 @@ select {
     width: 38vw;
   }
 
-  .game-dom-board {
-    width: 48vw;
-  }
-
   .showdown-pairs dl {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -939,6 +814,16 @@ select {
     justify-self: start;
   }
 
+  .game-header-actions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+  }
+
+  .game-header-actions button {
+    width: 100%;
+  }
+
   .game-scoreboard {
     top: 6.6rem;
     left: 0.5rem;
@@ -947,42 +832,5 @@ select {
 
   .game-scoreboard li {
     padding: 0.4rem 0.5rem;
-  }
-
-  .game-dom-board {
-    top: 6.6rem;
-    right: 0.5rem;
-    width: 9.5rem;
-    max-height: calc(100dvh - 17rem);
-  }
-
-  .game-dom-board > section {
-    padding: 0.45rem;
-  }
-
-  .game-dom-row {
-    grid-template-columns: 1fr;
-  }
-
-  .game-card-names {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-
-  .game-controls {
-    padding: 0.65rem;
-  }
-
-  .pending-cards {
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding: 0.3rem;
-  }
-
-  .pending-cards button {
-    min-width: 4.4rem;
   }
 }

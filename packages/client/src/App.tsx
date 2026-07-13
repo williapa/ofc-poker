@@ -64,11 +64,11 @@ function readableError(error: unknown): string {
 
 function Brand() {
   return (
-    <div className="brand" aria-label="Open Face Club">
+    <div className="brand" aria-label="OFC">
       <span className="brand-mark" aria-hidden="true">
         ♢
       </span>
-      <span>Open Face Club</span>
+      <span>OFC Poker </span>
     </div>
   );
 }
@@ -131,9 +131,25 @@ function HomeScreen({ busy, error, onCreate }: HomeScreenProps) {
           </p>
         </div>
         <div className="board-motif" aria-hidden="true">
-          <span>3</span>
-          <span>5</span>
-          <span>5</span>
+          <div className="board-motif-row board-motif-row-front">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="board-motif-row">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="board-motif-row">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
       </section>
 

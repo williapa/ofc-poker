@@ -95,7 +95,7 @@ function WebGLFallback() {
       <strong>3D table unavailable</strong>
       <span>
         Your browser could not start WebGL. Game status, cards, and controls
-        remain available below.
+        remain available to assistive technologies.
       </span>
     </div>
   );
@@ -253,6 +253,9 @@ export function GameTableView({
     interaction.key === interactionKey ? interaction.selectedCard : undefined;
   const assignments =
     interaction.key === interactionKey ? interaction.assignments : {};
+  const unassignedCards = pendingCards.filter(
+    (card) => assignments[card] === undefined,
+  );
 
   const viewPlayers = useMemo(() => createViewSeatPlayers(model), [model]);
   const seats = useMemo(
@@ -341,11 +344,44 @@ export function GameTableView({
       <header className="game-hud game-hud-top">
         <div>
           <p className="step">Hand {model.handNumber}</p>
-          <h1>Open Face Chinese Poker</h1>
+          <h1>OFC Poker</h1>
         </div>
-        <p className="game-status" role="status" aria-live="polite">
+        <p
+          className="game-status"
+          role={model.error ? "alert" : "status"}
+          aria-live="polite"
+        >
           {phaseStatus(model)}
         </p>
+        {pendingCards.length > 1 ||
+        (model.canStartNextHand && onStartNextHand) ? (
+          <div className="game-header-actions">
+            {pendingCards.length > 1 ? (
+              <button
+                className="confirm-placement-button game-attention-action"
+                type="button"
+                disabled={
+                  Object.keys(assignments).length !== pendingCards.length
+                }
+                onClick={confirmArrangement}
+              >
+                Confirm{" "}
+                {pendingCards.length === 13
+                  ? "Fantasyland arrangement"
+                  : "initial five"}
+              </button>
+            ) : null}
+            {model.canStartNextHand && onStartNextHand ? (
+              <button
+                className="primary-button game-attention-action"
+                type="button"
+                onClick={onStartNextHand}
+              >
+                Start next hand <span aria-hidden="true">→</span>
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {onLeave ? (
           <button className="game-text-button" type="button" onClick={onLeave}>
             Leave table
@@ -372,6 +408,7 @@ export function GameTableView({
               <GameTableScene
                 seats={seats}
                 pendingCards={pendingCards}
+                assignments={assignments}
                 selectedCard={selectedCard}
                 validRows={validRows}
                 reducedMotion={reducedMotion}
@@ -497,7 +534,10 @@ export function GameTableView({
         </ol>
       </aside>
 
-      <section className="game-dom-board" aria-label="Accessible game board">
+      <section
+        className="game-accessible-board"
+        aria-label="Accessible game board"
+      >
         {viewPlayers.map((player) => {
           const board = boardForPlayer(model, player.id);
           const faceDown =
@@ -535,7 +575,18 @@ export function GameTableView({
                       </span>
                       {staged.length > 0 ? (
                         <span className="game-staged-cards">
-                          Staged: {staged.map(cardName).join(", ")}
+                          <span>Staged:</span>{" "}
+                          {staged.map((card) => (
+                            <button
+                              className="game-staged-card"
+                              key={card}
+                              type="button"
+                              aria-pressed={selectedCard === card}
+                              onClick={() => selectCard(card)}
+                            >
+                              {cardName(card)}
+                            </button>
+                          ))}
                         </span>
                       ) : null}
                       <span className="game-card-names">
@@ -644,60 +695,33 @@ export function GameTableView({
         </section>
       ) : null}
 
-      <footer className="game-controls" aria-label="Card controls">
-        <div className="pending-cards" role="group" aria-label="Cards to place">
-          {pendingCards.length === 0 ? (
-            <p>No cards waiting to be placed.</p>
-          ) : (
-            pendingCards.map((card) => {
-              const assignedRow = assignments[card];
-              return (
-                <button
-                  key={card}
-                  type="button"
-                  aria-pressed={selectedCard === card}
-                  disabled={!model.isLocalTurn}
-                  onClick={() => selectCard(card)}
-                >
-                  <span aria-hidden="true">{card.toUpperCase()}</span>
-                  <span>{cardName(card)}</span>
-                  {selectedCard === card ? <small>Selected</small> : null}
-                  {assignedRow ? (
-                    <small>Assigned to {assignedRow}</small>
-                  ) : null}
-                </button>
-              );
-            })
-          )}
-        </div>
-        {model.error ? (
-          <p className="game-error" role="alert">
-            {model.error}
-          </p>
-        ) : null}
-        {pendingCards.length > 1 ? (
-          <button
-            className="confirm-placement-button"
-            type="button"
-            disabled={Object.keys(assignments).length !== pendingCards.length}
-            onClick={confirmArrangement}
-          >
-            Confirm{" "}
-            {pendingCards.length === 13
-              ? "Fantasyland arrangement"
-              : "initial five"}
-          </button>
-        ) : null}
-        {model.canStartNextHand && onStartNextHand ? (
-          <button
-            className="primary-button"
-            type="button"
-            onClick={onStartNextHand}
-          >
-            Start next hand <span aria-hidden="true">→</span>
-          </button>
-        ) : null}
-      </footer>
+      <div
+        className="game-accessible-hand"
+        role="group"
+        aria-label="Cards to place"
+      >
+        {pendingCards.length === 0 ? (
+          <p>No cards waiting to be placed.</p>
+        ) : unassignedCards.length === 0 ? (
+          <p>All cards are staged. Confirm or select one to move it.</p>
+        ) : (
+          unassignedCards.map((card) => {
+            return (
+              <button
+                key={card}
+                type="button"
+                aria-pressed={selectedCard === card}
+                disabled={!model.isLocalTurn}
+                onClick={() => selectCard(card)}
+              >
+                <span aria-hidden="true">{card.toUpperCase()}</span>
+                <span>{cardName(card)}</span>
+                {selectedCard === card ? <small>Selected</small> : null}
+              </button>
+            );
+          })
+        )}
+      </div>
     </main>
   );
 }

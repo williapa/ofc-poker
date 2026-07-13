@@ -9,6 +9,10 @@ import {
 import { describe, expect, test, vi } from "vitest";
 import type { GameViewModel, GameViewPlayer } from "../src/contracts/game-view";
 import { GameTableView } from "../src/game-view/GameTableView";
+import {
+  cardFaceLabels,
+  GAME_VIEW_TOKENS,
+} from "../src/game-view/design-system";
 import { createCameraLayout, createSeatLayout } from "../src/game-view/layout";
 import { expectNoCriticalAccessibilityViolations } from "./setup";
 
@@ -131,6 +135,7 @@ describe("seat and camera layout", () => {
       expect(new Set(layout.map(({ relativeSeat }) => relativeSeat)).size).toBe(
         count,
       );
+      expect(layout.every(({ rotationY }) => rotationY === 0)).toBe(true);
     },
   );
 
@@ -140,6 +145,18 @@ describe("seat and camera layout", () => {
     expect(mobile.zoom).toBeLessThan(desktop.zoom);
     expect(mobile.position[1]).toBeGreaterThan(desktop.position[1]);
   });
+
+  test("uses cards substantially larger than the first readability pass", () => {
+    const previousArea = 0.92 * 1.3;
+    expect(
+      GAME_VIEW_TOKENS.card.width * GAME_VIEW_TOKENS.card.height,
+    ).toBeGreaterThanOrEqual(previousArea * 1.5);
+  });
+});
+
+test("defines one rank and one central suit label per card face", () => {
+  expect(cardFaceLabels("Th")).toEqual(["10", "♥"]);
+  expect(cardFaceLabels("Th").filter((label) => label === "♥")).toHaveLength(1);
 });
 
 test.each([2, 3, 4] as const)(
@@ -246,11 +263,43 @@ test("stages and confirms an initial five without moving committed cards", () =>
         name: `Place in ${placement.row[0]!.toUpperCase()}${placement.row.slice(1)}`,
       }),
     );
+    expect(
+      within(screen.getByRole("group", { name: "Cards to place" })).queryByRole(
+        "button",
+        { name: new RegExp(cardLabel(placement.card), "i") },
+      ),
+    ).not.toBeInTheDocument();
   }
   expect(onAction).not.toHaveBeenCalled();
   expect(screen.getAllByText(/Staged:/)).toHaveLength(3);
-  fireEvent.click(screen.getByRole("button", { name: "Confirm initial five" }));
+  const stagedAce = screen.getByRole("button", {
+    name: new RegExp(cardLabel(pending[0]!), "i"),
+  });
+  fireEvent.click(stagedAce);
+  expect(stagedAce).toHaveAttribute("aria-pressed", "true");
+  const confirm = screen.getByRole("button", { name: "Confirm initial five" });
+  expect(confirm.closest("header")).not.toBeNull();
+  expect(confirm).toHaveClass("game-attention-action");
+  fireEvent.click(confirm);
   expect(onAction).toHaveBeenCalledWith(initialAction);
+});
+
+test("removes the table footer while preserving accessible hand controls", () => {
+  render(
+    <GameTableView
+      model={model(2)}
+      onAction={() => undefined}
+      webglSupported={false}
+    />,
+  );
+
+  expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("group", { name: "Card controls" }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole("group", { name: "Cards to place" })).toHaveClass(
+    "game-accessible-hand",
+  );
 });
 
 function cardLabel(card: CardCode): string {
@@ -279,8 +328,10 @@ test("keeps a useful DOM game surface when WebGL is unsupported", () => {
   );
   expect(
     screen.getByRole("region", { name: "Accessible game board" }),
-  ).toBeVisible();
-  expect(screen.getByRole("group", { name: "Cards to place" })).toBeVisible();
+  ).toHaveClass("game-accessible-board");
+  expect(screen.getByRole("group", { name: "Cards to place" })).toHaveClass(
+    "game-accessible-hand",
+  );
 });
 
 test("announces reconnect progress before placement resumes", () => {
@@ -423,6 +474,9 @@ test("announces disconnects and presents pairwise showdown details", () => {
     screen.getByRole("heading", { name: "Ada vs Player 2" }),
   ).toBeVisible();
   expect(screen.getByText("Start next hand")).toBeVisible();
+  expect(screen.getByText("Start next hand").closest("button")).toHaveClass(
+    "game-attention-action",
+  );
   expect(screen.getAllByText("Royalties").length).toBeGreaterThan(0);
 });
 

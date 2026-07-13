@@ -8,7 +8,11 @@ import {
   type PlacementRow,
   type PlayerId,
 } from "@ofcpoker/game-engine";
-import { GAME_VIEW_TOKENS, ROW_DEFINITIONS } from "./design-system";
+import {
+  cardFaceLabels,
+  GAME_VIEW_TOKENS,
+  ROW_DEFINITIONS,
+} from "./design-system";
 import type { SeatLayout } from "./layout";
 
 export interface SceneSeat {
@@ -22,6 +26,7 @@ export interface SceneSeat {
 export interface GameTableSceneProps {
   readonly seats: readonly SceneSeat[];
   readonly pendingCards: readonly CardCode[];
+  readonly assignments: Readonly<Partial<Record<CardCode, PlacementRow>>>;
   readonly selectedCard: CardCode | undefined;
   readonly validRows: readonly PlacementRow[];
   readonly reducedMotion: boolean;
@@ -29,11 +34,9 @@ export interface GameTableSceneProps {
   readonly onSelectRow: (row: PlacementRow) => void;
 }
 
-const SUIT_GLYPH = Object.freeze({ c: "♣", d: "♦", h: "♥", s: "♠" });
-const RANK_LABEL = Object.freeze({ T: "10", J: "J", Q: "Q", K: "K", A: "A" });
-
 function createFaceTexture(code: CardCode): Texture {
   const card = parseCard(code);
+  const [rank, suit] = cardFaceLabels(code);
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 360;
@@ -45,17 +48,14 @@ function createFaceTexture(code: CardCode): Texture {
     card.suit === "d" || card.suit === "h"
       ? GAME_VIEW_TOKENS.color.redSuit
       : GAME_VIEW_TOKENS.color.ink;
-  context.font = `700 68px ${GAME_VIEW_TOKENS.typography.card}`;
+  context.font = `700 116px ${GAME_VIEW_TOKENS.typography.card}`;
   context.textAlign = "left";
   context.textBaseline = "top";
-  const rank = RANK_LABEL[card.rank as keyof typeof RANK_LABEL] ?? card.rank;
-  context.fillText(rank, 18, 12);
-  context.font = `76px ${GAME_VIEW_TOKENS.typography.card}`;
-  context.fillText(SUIT_GLYPH[card.suit], 18, 75);
+  context.fillText(rank, 12, 0);
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = `132px ${GAME_VIEW_TOKENS.typography.card}`;
-  context.fillText(SUIT_GLYPH[card.suit], 128, 220);
+  context.font = `196px ${GAME_VIEW_TOKENS.typography.card}`;
+  context.fillText(suit, 128, 220);
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
@@ -175,28 +175,37 @@ function rowCardX(index: number, capacity: number): number {
 }
 
 const ROW_Z: Readonly<Record<PlacementRow, number>> = Object.freeze({
-  front: -1.02,
+  front: -1.76,
   middle: 0,
-  back: 1.02,
+  back: 1.76,
 });
 
 function SeatBoard({
   seat,
+  assignments,
+  selectedCard,
   validRows,
+  reducedMotion,
+  onSelectCard,
   onSelectRow,
 }: {
   readonly seat: SceneSeat;
+  readonly assignments: Readonly<Partial<Record<CardCode, PlacementRow>>>;
+  readonly selectedCard: CardCode | undefined;
   readonly validRows: readonly PlacementRow[];
+  readonly reducedMotion: boolean;
+  readonly onSelectCard: (card: CardCode) => void;
   readonly onSelectRow: (row: PlacementRow) => void;
 }) {
   return (
-    <group
-      position={seat.layout.position}
-      rotation={[0, seat.layout.rotationY, 0]}
-      name={`seat-${seat.layout.seat}`}
-    >
+    <group position={seat.layout.position} name={`seat-${seat.layout.seat}`}>
       {ROW_DEFINITIONS.map(({ row, capacity }) => {
         const cards = seat.board[row];
+        const stagedCards = seat.layout.isLocal
+          ? (Object.entries(assignments) as [CardCode, PlacementRow][])
+              .filter(([, assignedRow]) => assignedRow === row)
+              .map(([card]) => card)
+          : [];
         const valid = seat.layout.isLocal && validRows.includes(row);
         return (
           <group key={row} position={[0, 0, ROW_Z[row]]} name={`${row}-row`}>
@@ -241,6 +250,21 @@ function SeatBoard({
                 faceUp={!seat.faceDown}
               />
             ))}
+            {stagedCards.map((card, stagedIndex) => (
+              <PlayingCard
+                key={`staged-${card}`}
+                code={card}
+                position={[
+                  rowCardX(cards.length + stagedIndex, capacity),
+                  0.05,
+                  0,
+                ]}
+                selected={card === selectedCard}
+                interactive
+                reducedMotion={reducedMotion}
+                onClick={() => onSelectCard(card)}
+              />
+            ))}
             {seat.faceDown && cards.length === 0 && seat.hiddenCardCount === 13
               ? Array.from({ length: capacity }, (_, index) => (
                   <PlayingCard
@@ -271,12 +295,19 @@ function AimCamera() {
 export function GameTableScene({
   seats,
   pendingCards,
+  assignments,
   selectedCard,
   validRows,
   reducedMotion,
   onSelectCard,
   onSelectRow,
 }: GameTableSceneProps) {
+  const localSeat = seats.find(({ layout }) => layout.isLocal);
+  const localHandZ =
+    (localSeat?.layout.position[2] ?? 3.6) +
+    ROW_Z.back +
+    GAME_VIEW_TOKENS.card.height +
+    0.16;
   return (
     <>
       <AimCamera />
@@ -290,7 +321,7 @@ export function GameTableScene({
         shadow-mapSize-height={1024}
       />
       <mesh receiveShadow position={[0, -0.08, 0]}>
-        <cylinderGeometry args={[7.2, 7.35, 0.2, 64]} />
+        <cylinderGeometry args={[9.2, 9.35, 0.2, 64]} />
         <meshStandardMaterial
           color={GAME_VIEW_TOKENS.color.felt}
           roughness={0.9}
@@ -300,22 +331,28 @@ export function GameTableScene({
         <SeatBoard
           key={seat.id}
           seat={seat}
+          assignments={assignments}
+          selectedCard={selectedCard}
           validRows={validRows}
+          reducedMotion={reducedMotion}
+          onSelectCard={onSelectCard}
           onSelectRow={onSelectRow}
         />
       ))}
-      <group position={[0, 0.08, 5.05]} name="local-hand">
-        {pendingCards.map((card, index) => (
-          <PlayingCard
-            key={card}
-            code={card}
-            position={[rowCardX(index, pendingCards.length), 0, 0]}
-            selected={card === selectedCard}
-            interactive
-            reducedMotion={reducedMotion}
-            onClick={() => onSelectCard(card)}
-          />
-        ))}
+      <group position={[0, 0.08, localHandZ]} name="local-hand">
+        {pendingCards
+          .filter((card) => assignments[card] === undefined)
+          .map((card, index, unassignedCards) => (
+            <PlayingCard
+              key={card}
+              code={card}
+              position={[rowCardX(index, unassignedCards.length), 0, 0]}
+              selected={card === selectedCard}
+              interactive
+              reducedMotion={reducedMotion}
+              onClick={() => onSelectCard(card)}
+            />
+          ))}
       </group>
     </>
   );

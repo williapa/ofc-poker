@@ -40,9 +40,9 @@ function factoryFor(provider: ClientDataProvider) {
   } satisfies ProviderFactory;
 }
 
-test("renders accessible typed defaults without initializing a provider", () => {
+test("renders accessible typed defaults and a 3 / 5 / 5 board motif without initializing a provider", () => {
   const factory = factoryFor(localProvider());
-  render(
+  const { container } = render(
     <App
       providerFactory={factory}
       initialUrl="https://example.test/ofcpoker/"
@@ -60,6 +60,12 @@ test("renders accessible typed defaults without initializing a provider", () => 
     ),
   ).toBeVisible();
   expect(factory.create).not.toHaveBeenCalled();
+  const motifRows = container.querySelectorAll(".board-motif-row");
+  expect(motifRows).toHaveLength(3);
+  expect(
+    Array.from(motifRows, (row) => row.querySelectorAll("span").length),
+  ).toEqual([3, 5, 5]);
+  expect(container.querySelector(".board-motif")?.textContent).toBe("");
 
   fireEvent.click(screen.getByRole("radio", { name: /Local AI/ }));
   expect(factory.create).not.toHaveBeenCalled();
@@ -121,7 +127,7 @@ test("creates a local AI lobby through explicit provider wiring", async () => {
   fireEvent.click(screen.getByRole("button", { name: /Create table/ }));
 
   expect(
-    await screen.findByRole("heading", { name: "Open Face Chinese Poker" }),
+    await screen.findByRole("heading", { name: "OFC Poker" }),
   ).toBeVisible();
   expect(factory.create).toHaveBeenCalledWith("local-ai");
   expect(screen.queryByText("You and 3 AI opponents.")).not.toBeInTheDocument();

@@ -1,4 +1,19 @@
-import type { PlacementRow } from "@ofcpoker/game-engine";
+import {
+  parseCard,
+  type CardCode,
+  type PlacementRow,
+} from "@ofcpoker/game-engine";
+
+const SUIT_GLYPH = Object.freeze({ c: "♣", d: "♦", h: "♥", s: "♠" });
+const RANK_LABEL = Object.freeze({ T: "10", J: "J", Q: "Q", K: "K", A: "A" });
+
+export function cardFaceLabels(code: CardCode): readonly [string, string] {
+  const card = parseCard(code);
+  return [
+    RANK_LABEL[card.rank as keyof typeof RANK_LABEL] ?? card.rank,
+    SUIT_GLYPH[card.suit],
+  ];
+}
 
 export const GAME_VIEW_TOKENS = Object.freeze({
   color: {
@@ -18,7 +33,7 @@ export const GAME_VIEW_TOKENS = Object.freeze({
     ui: '"DM Sans", ui-sans-serif, system-ui, sans-serif',
     card: 'Georgia, "Times New Roman", serif',
   },
-  card: { width: 0.64, height: 0.9, depth: 0.035, gap: 0.08 },
+  card: { width: 1.16, height: 1.64, depth: 0.035, gap: 0.12 },
   motion: {
     durationMs: 160,
     selectedLift: 0.12,

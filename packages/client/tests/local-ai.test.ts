@@ -28,11 +28,11 @@ describe("local AI profile registry", () => {
     expect(Object.isFrozen(LOCAL_AI_PROFILE_REGISTRY)).toBe(true);
     expect(LOCAL_AI_PROFILE_REGISTRY.steady).toMatchObject({
       difficulty: "medium",
-      overrides: { thinkDelayMs: 450 },
+      overrides: { thinkDelayMs: 850 },
     });
     expect(LOCAL_AI_PROFILE_REGISTRY.careful).toMatchObject({
       difficulty: "hard",
-      overrides: { thinkDelayMs: 650 },
+      overrides: { thinkDelayMs: 1050 },
     });
   });
 });
