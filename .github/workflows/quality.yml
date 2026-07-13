@@ -1,7 +1,6 @@
 name: Quality
 
 on:
-  push:
   pull_request:
 
 permissions:
@@ -11,8 +10,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -22,3 +21,5 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:coverage
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: VITE_BASE_PATH=ofcpoker npm run test:e2e

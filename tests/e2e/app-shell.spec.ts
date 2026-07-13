@@ -53,3 +53,21 @@ test("shows inline validation and handles an invalid join link", async ({
   ).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("valid lobby identifier");
 });
+
+test("loads home and join routes from the configured repository path", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await expect(
+    page.getByRole("heading", { name: "Build it in the open." }),
+  ).toBeVisible();
+
+  await page.goto("./?lobby=pages-smoke-room");
+  await expect(
+    page.getByRole("heading", { name: "Join the table" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Join the table" }),
+  ).toBeVisible();
+});

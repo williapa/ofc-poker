@@ -71,8 +71,9 @@ Replace the workspace name with `@ofcpoker/data-provider`, `@ofcpoker/ai-player`
 The root coverage command runs V8 coverage gates for every package. Thresholds
 and exclusions are justified in `docs/test-traceability.md`; coverage output is
 generated in each package's `coverage` directory and is ignored by git. The
-GitHub Actions quality workflow runs format, lint, type-check, coverage, and the
-production build on pushes and pull requests.
+GitHub Actions quality workflow runs clean install, format, lint, type-check,
+coverage, production build, and the Chromium E2E subset on pull requests. The
+Pages workflow repeats that gate on `main` before deployment.
 
 The client build uses an explicit 1,100 kB minified chunk warning budget. This
 covers the current separate Three.js and lazy Playroom dependency boundaries
@@ -92,6 +93,36 @@ recoverable under the project's no-host-migration policy.
 
 Generated `dist`, TypeScript build-info, coverage, and browser-test artifacts are ignored by git.
 
-## Deployment
+## GitHub Pages deployment
 
-GitHub Pages automation is not implemented yet. The deployment design is in `docs/architecture/deployment.md`; the production build command is `npm run build`.
+In **Settings → Pages**, select **GitHub Actions** as the source. Keep the default
+`github-pages` environment; optionally add deployment review protection. Enable
+Actions, and require the `Quality / verify` check in `main` branch protection.
+
+Every push to `main` runs `.github/workflows/pages.yml`. Validation must pass
+before a fresh artifact is uploaded and deployed. The `pages` concurrency group
+serializes deployments without cancelling one in progress. Only artifact and
+deployment jobs receive `pages: write` and `id-token: write`; other jobs have
+read-only repository access.
+
+For a repository named `ofcpoker`, the URL is
+`https://<owner>.github.io/ofcpoker/`. Reproduce the Pages build and browser
+checks without Playroom credentials:
+
+```sh
+VITE_BASE_PATH=ofcpoker npm run build
+npx playwright install chromium
+VITE_BASE_PATH=ofcpoker npm run test:e2e
+```
+
+Supported URLs are the repository index and query-based join links such as
+`/ofcpoker/?lobby=<id>`. Both resolve to `index.html`, so direct navigation and
+refresh need no `404.html` fallback. E2E verifies home, join, and refreshed join
+loads under the configured repository path.
+
+If assets return 404, confirm the exact repository name (including case) and
+inspect `packages/client/dist/index.html` for `/<repository>/assets/` URLs. If
+deployment does not run, confirm Pages uses GitHub Actions, validation passed,
+and the environment is not awaiting approval. Keep `?lobby=` in join URLs. A
+missing `VITE_PLAYROOM_GAME_ID` disables only multiplayer; local AI, CI, builds,
+and deployment need no credentials and consume no Playroom quota.

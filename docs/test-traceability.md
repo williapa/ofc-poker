@@ -18,7 +18,7 @@ otherwise-open product requirement is complete.
 | R10 unit tests         | all Vitest suites; package coverage gates run through root `npm run test:coverage`                                                                                            |
 | R11 browser tests      | `tests/e2e/app-shell.spec.ts` (local creation, validation, malformed join); broader browser automation remains open                                                           |
 | R12 local provider     | local provider contract and option/failure tests; `packages/client/tests/providers.test.ts` proves no network or Playroom loading                                             |
-| R13 GitHub Pages       | Playwright's web server builds and serves the static production artifact; deployment workflow itself remains unimplemented                                                    |
+| R13 GitHub Pages       | `pages.yml` gates deployment on validation; Playwright builds and reloads home/join URLs under the configured repository base path                                            |
 
 ## OFC rule traceability
 
@@ -67,4 +67,4 @@ line. All packages require 100% of tests to pass in addition to these floors:
 | client        | 80 / 80 / 80 / 80                         | Runner and DOM behavior are heavily tested. The browser entrypoint and type-only contracts are excluded; R3F rendering internals are complemented by layout, fallback, component, and future browser tests. |
 
 CI enforces these floors with `npm run test:coverage` after format, lint, and
-type-check, then verifies the production build.
+type-check, then verifies the production build and Chromium E2E subset.

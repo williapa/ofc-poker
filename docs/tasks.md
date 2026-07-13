@@ -298,3 +298,17 @@ Requirement references: R9 readable minimal 3D game UI, R10 unit tests, and R11 
 - Replaced the splash-page numeric motif with three centered slot rows of `3 / 5 / 5`, slowed local AI presentation to 850–1,050 ms, simplified card faces to one central suit, and added reduced-motion-safe attention animation to enabled confirm and next-hand actions.
 
 Requirements R9 and R11 remain open pending complete product-level visual and end-to-end acceptance. R10 remains complete for the behavior implemented so far.
+
+## 18. Configure CI and GitHub Pages deployment
+
+Status: complete (2026-07-12)
+
+Requirement references: R1 static browser application, R2 repository-safe shareable links, R6 quota-free local AI, R10 automated validation, R11 browser coverage, and R13 GitHub Pages deployment.
+
+- Added pull-request validation for clean install, formatting, lint, type-checking, unit/integration coverage, production build, and Chromium E2E tests.
+- Added a `main` workflow that repeats validation before building and uploading a Pages artifact, grants Pages/OIDC permissions only to deployment jobs, and serializes deployments without cancelling one in progress.
+- Made the Vite base path configurable and normalized for repository-page asset URLs while retaining `/` for ordinary local builds.
+- Retained query-string static routing so home and join URLs resolve to the real repository index, and added browser coverage for direct and refreshed join loads beneath a repository base path.
+- Documented Pages settings, branch protection, deployment URL, local reproduction, permissions, routing, asset troubleshooting, and the credential-free/quota-free CI boundary.
+
+R13 remains open until a successful deployment demonstrates that the public repository page is available. No other product requirement is newly marked complete.
