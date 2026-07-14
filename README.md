@@ -14,10 +14,6 @@ The app has two table modes:
   the displayed invite URL; guests open it, enter a display name, and join. A
   table's player count and rules cannot change after creation.
 
-The project is release-candidate quality but is not yet published at a public
-URL. See [Release status](#release-status) for the exact remaining deployment
-work and known limitations.
-
 ## Play
 
 From the home page, enter a display name, select Local AI or Multiplayer, choose

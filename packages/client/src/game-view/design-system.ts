@@ -33,6 +33,14 @@ export const GAME_VIEW_TOKENS = Object.freeze({
     ui: '"DM Sans", ui-sans-serif, system-ui, sans-serif',
     card: 'Georgia, "Times New Roman", serif',
   },
+  cardFace: {
+    rankFontPx: 148,
+    suitFontPx: 204,
+    rankX: 10,
+    rankY: -8,
+    suitX: 128,
+    suitY: 222,
+  },
   card: { width: 1.16, height: 1.64, depth: 0.035, gap: 0.12 },
   motion: {
     durationMs: 160,

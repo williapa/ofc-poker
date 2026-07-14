@@ -6,4 +6,11 @@ export {
   type GameCameraLayout,
   type SeatLayout,
 } from "./layout";
+export {
+  RESPONSIVE_LAYOUT_INVARIANTS,
+  RESPONSIVE_VIEWPORTS,
+  type ResponsiveLayoutInvariants,
+  type ResponsiveLayoutMode,
+  type ResponsiveViewportInvariant,
+} from "./responsive-layout-invariants";
 export { supportsWebGL } from "./webgl";

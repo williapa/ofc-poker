@@ -1,4 +1,5 @@
 import type { PlayerId } from "@ofcpoker/game-engine";
+import type { ResponsiveLayoutMode } from "./responsive-layout-invariants";
 
 export interface SeatLayout {
   readonly playerId: PlayerId;
@@ -36,10 +37,18 @@ const POSITIONS: Readonly<
   ],
 });
 
+const POSITION_SCALE: Record<ResponsiveLayoutMode, readonly [number, number]> =
+  Object.freeze({
+    desktop: [1, 1],
+    "mobile-portrait": [0.9, 0.94],
+    "mobile-landscape": [0.9, 0.9],
+  });
+
 /** Rotates every table so the viewer is always the stable bottom seat. */
 export function createSeatLayout(
   players: readonly { readonly id: PlayerId; readonly seat: number }[],
   viewerId: PlayerId,
+  mode: ResponsiveLayoutMode = "desktop",
 ): readonly SeatLayout[] {
   if (players.length < 2 || players.length > 4) {
     throw new RangeError("The game view supports two to four seats");
@@ -48,6 +57,7 @@ export function createSeatLayout(
   if (viewer === undefined) throw new RangeError("Viewer must occupy a seat");
   const positions = POSITIONS[players.length];
   if (positions === undefined) throw new RangeError("Unsupported seat count");
+  const [scaleX, scaleZ] = POSITION_SCALE[mode];
 
   return players.map((player) => {
     const relativeSeat =
@@ -58,17 +68,41 @@ export function createSeatLayout(
       playerId: player.id,
       seat: player.seat,
       relativeSeat,
-      position: [placement[0], placement[1], placement[2]] as const,
+      position: [
+        placement[0] * scaleX,
+        placement[1],
+        placement[2] * scaleZ,
+      ] as const,
       rotationY: 0,
       isLocal: player.id === viewerId,
     });
   });
 }
 
-export function createCameraLayout(compact: boolean): GameCameraLayout {
+export function createCameraLayout(
+  mode: ResponsiveLayoutMode,
+): GameCameraLayout {
+  const cameraByMode: Record<
+    ResponsiveLayoutMode,
+    Pick<GameCameraLayout, "position" | "zoom">
+  > = {
+    desktop: {
+      position: [0, 11, 8.5],
+      zoom: 58,
+    },
+    "mobile-portrait": {
+      position: [0, 16.7, 15],
+      zoom: 19,
+    },
+    "mobile-landscape": {
+      position: [0, 14.8, 12.2],
+      zoom: 21,
+    },
+  };
+  const camera = cameraByMode[mode];
   return Object.freeze({
-    position: [0, compact ? 12.5 : 11, compact ? 10.5 : 8.5] as const,
-    zoom: compact ? 43 : 58,
+    position: camera.position,
+    zoom: camera.zoom,
     near: 0.1,
     far: 100,
   });

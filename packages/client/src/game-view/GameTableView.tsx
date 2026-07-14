@@ -19,6 +19,7 @@ import type { GameViewModel } from "../contracts/game-view";
 import { GAME_VIEW_TOKENS, ROW_DEFINITIONS } from "./design-system";
 import { GameTableScene, type SceneSeat } from "./GameTableScene";
 import { createCameraLayout, createSeatLayout } from "./layout";
+import type { ResponsiveLayoutMode } from "./responsive-layout-invariants";
 import { useMediaQuery } from "./use-media-query";
 import { supportsWebGL } from "./webgl";
 
@@ -209,8 +210,9 @@ function createViewSeatPlayers(
 function createSceneSeats(
   model: Readonly<GameViewModel>,
   viewPlayers: readonly ViewSeatPlayer[],
+  layoutMode: ResponsiveLayoutMode,
 ): readonly SceneSeat[] {
-  const layouts = createSeatLayout(viewPlayers, model.viewerId);
+  const layouts = createSeatLayout(viewPlayers, model.viewerId, layoutMode);
   return layouts.map((layout) => ({
     id: layout.playerId,
     layout,
@@ -235,7 +237,17 @@ export function GameTableView({
   inviteUrl,
   webglSupported,
 }: GameTableViewProps) {
-  const compact = useMediaQuery("(max-width: 700px)");
+  const mobilePortrait = useMediaQuery(
+    "(max-width: 700px) and (orientation: portrait)",
+  );
+  const mobileLandscape = useMediaQuery(
+    "(max-height: 700px) and (orientation: landscape)",
+  );
+  const layoutMode: ResponsiveLayoutMode = mobileLandscape
+    ? "mobile-landscape"
+    : mobilePortrait
+      ? "mobile-portrait"
+      : "desktop";
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const pendingCards = model.state?.privateData.pendingCards ?? [];
   const pendingKey = pendingCards.join(",");
@@ -259,15 +271,15 @@ export function GameTableView({
 
   const viewPlayers = useMemo(() => createViewSeatPlayers(model), [model]);
   const seats = useMemo(
-    () => createSceneSeats(model, viewPlayers),
-    [model, viewPlayers],
+    () => createSceneSeats(model, viewPlayers, layoutMode),
+    [layoutMode, model, viewPlayers],
   );
   const validRows = legalRowsForCard(
     model.isLocalTurn ? model.legalActions : [],
     assignments,
     selectedCard,
   );
-  const camera = createCameraLayout(compact);
+  const camera = createCameraLayout(layoutMode);
   const canRenderWebGL = webglSupported ?? supportsWebGL();
 
   function selectCard(card: CardCode) {
@@ -331,6 +343,8 @@ export function GameTableView({
   return (
     <main
       className="game-view"
+      data-testid="game-view"
+      data-layout-mode={layoutMode}
       style={
         {
           "--game-motion-duration": `${
@@ -389,311 +403,322 @@ export function GameTableView({
         ) : null}
       </header>
 
-      <section className="game-canvas-region" aria-label="3D card table">
-        {canRenderWebGL ? (
-          <WebGLErrorBoundary>
-            <Canvas
-              orthographic
-              shadows
-              dpr={[1, 1.5]}
-              camera={{
-                position: [...camera.position],
-                zoom: camera.zoom,
-                near: camera.near,
-                far: camera.far,
-              }}
-              fallback={<WebGLFallback />}
-              gl={{ antialias: true, powerPreference: "high-performance" }}
-            >
-              <GameTableScene
-                seats={seats}
-                pendingCards={pendingCards}
-                assignments={assignments}
-                selectedCard={selectedCard}
-                validRows={validRows}
-                reducedMotion={reducedMotion}
-                onSelectCard={selectCard}
-                onSelectRow={selectRow}
-              />
-            </Canvas>
-          </WebGLErrorBoundary>
-        ) : (
-          <WebGLFallback />
-        )}
-      </section>
-
-      {model.phase === "waiting" ? (
-        <section className="game-waiting" aria-labelledby="waiting-title">
-          <p className="step">Table ready</p>
-          <h2 id="waiting-title">Waiting for players</h2>
-          <p>
-            {model.players.length} of {model.lobby.settings.seatCount} players
-            seated.
-          </p>
-          <p className="lobby-code">
-            Room code <strong>{model.lobby.id}</strong>
-          </p>
-          {inviteUrl ? (
-            <div className="share-link">
-              <label htmlFor="game-invite-link">Invite link</label>
-              <div className="share-link-controls">
-                <input
-                  id="game-invite-link"
-                  ref={inviteInputRef}
-                  readOnly
-                  value={inviteUrl}
-                  onFocus={(event) => event.currentTarget.select()}
+      <div className="game-stage">
+        <section className="game-canvas-region" aria-label="3D card table">
+          {canRenderWebGL ? (
+            <WebGLErrorBoundary>
+              <Canvas
+                orthographic
+                shadows
+                dpr={[1, 1.5]}
+                camera={{
+                  position: [...camera.position],
+                  zoom: camera.zoom,
+                  near: camera.near,
+                  far: camera.far,
+                }}
+                fallback={<WebGLFallback />}
+                gl={{ antialias: true, powerPreference: "high-performance" }}
+              >
+                <GameTableScene
+                  seats={seats}
+                  pendingCards={pendingCards}
+                  assignments={assignments}
+                  selectedCard={selectedCard}
+                  validRows={validRows}
+                  reducedMotion={reducedMotion}
+                  onSelectCard={selectCard}
+                  onSelectRow={selectRow}
                 />
+              </Canvas>
+            </WebGLErrorBoundary>
+          ) : (
+            <WebGLFallback />
+          )}
+        </section>
+
+        {model.phase === "waiting" ? (
+          <section className="game-waiting" aria-labelledby="waiting-title">
+            <p className="step">Table ready</p>
+            <h2 id="waiting-title">Waiting for players</h2>
+            <p>
+              {model.players.length} of {model.lobby.settings.seatCount} players
+              seated.
+            </p>
+            <p className="lobby-code">
+              Room code <strong>{model.lobby.id}</strong>
+            </p>
+            {inviteUrl ? (
+              <div className="share-link">
+                <label htmlFor="game-invite-link">Invite link</label>
+                <div className="share-link-controls">
+                  <input
+                    id="game-invite-link"
+                    ref={inviteInputRef}
+                    readOnly
+                    value={inviteUrl}
+                    onFocus={(event) => event.currentTarget.select()}
+                  />
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => void copyInvite()}
+                  >
+                    Copy invite
+                  </button>
+                </div>
+                <p className="field-note" role="status" aria-live="polite">
+                  {copyStatus === "copied"
+                    ? "Invite link copied."
+                    : copyStatus === "failed"
+                      ? "Copy was blocked; the link is selected for manual copying."
+                      : "Share this link with the remaining players."}
+                </p>
+              </div>
+            ) : null}
+            <p>Settings cannot be changed after creation.</p>
+          </section>
+        ) : null}
+
+        {model.connection === "disconnected" || model.phase === "closed" ? (
+          <section className="game-recovery" aria-labelledby="recovery-title">
+            <p className="step">
+              {model.connection === "disconnected"
+                ? "Connection interrupted"
+                : "Table closed"}
+            </p>
+            <h2 id="recovery-title">
+              {model.connection === "disconnected"
+                ? "Your seat is reserved for a short time."
+                : "This game can’t continue."}
+            </h2>
+            <p>
+              {model.connection === "disconnected"
+                ? "Reconnect from this browser to restore your seat and the latest game state."
+                : (model.error ??
+                  "Return home to create or join another table.")}
+            </p>
+            <div className="game-recovery-actions">
+              {model.connection === "disconnected" && onReconnect ? (
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={onReconnect}
+                >
+                  Reconnect
+                </button>
+              ) : null}
+              {onLeave ? (
                 <button
                   className="secondary-button"
                   type="button"
-                  onClick={() => void copyInvite()}
+                  onClick={onLeave}
                 >
-                  Copy invite
+                  Return home
                 </button>
-              </div>
-              <p className="field-note" role="status" aria-live="polite">
-                {copyStatus === "copied"
-                  ? "Invite link copied."
-                  : copyStatus === "failed"
-                    ? "Copy was blocked; the link is selected for manual copying."
-                    : "Share this link with the remaining players."}
-              </p>
+              ) : null}
             </div>
-          ) : null}
-          <p>Settings cannot be changed after creation.</p>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
 
-      {model.connection === "disconnected" || model.phase === "closed" ? (
-        <section className="game-recovery" aria-labelledby="recovery-title">
-          <p className="step">
-            {model.connection === "disconnected"
-              ? "Connection interrupted"
-              : "Table closed"}
-          </p>
-          <h2 id="recovery-title">
-            {model.connection === "disconnected"
-              ? "Your seat is reserved for a short time."
-              : "This game can’t continue."}
-          </h2>
-          <p>
-            {model.connection === "disconnected"
-              ? "Reconnect from this browser to restore your seat and the latest game state."
-              : (model.error ?? "Return home to create or join another table.")}
-          </p>
-          <div className="game-recovery-actions">
-            {model.connection === "disconnected" && onReconnect ? (
-              <button
-                className="primary-button"
-                type="button"
-                onClick={onReconnect}
+        <aside className="game-scoreboard" aria-label="Scores">
+          <ol>
+            {model.players.map((player) => (
+              <li key={player.id} data-local={player.id === model.viewerId}>
+                <span>
+                  {player.displayName}
+                  {player.id === model.viewerId ? " (you)" : ""}
+                  {player.isAi ? " · AI" : ""}
+                </span>
+                <strong>{player.score} points</strong>
+                {player.connection === "disconnected" ? (
+                  <small>Disconnected</small>
+                ) : null}
+                {player.seat === model.dealerSeat ? (
+                  <small>Dealer</small>
+                ) : null}
+                {player.id === model.activePlayerId ? (
+                  <small>
+                    {player.id === model.viewerId
+                      ? "Your turn"
+                      : player.isThinking
+                        ? "Thinking…"
+                        : "Acting"}
+                  </small>
+                ) : null}
+                {player.inFantasyland ? <small>Fantasyland</small> : null}
+              </li>
+            ))}
+          </ol>
+        </aside>
+
+        <section
+          className="game-accessible-board"
+          aria-label="Accessible game board"
+        >
+          {viewPlayers.map((player) => {
+            const board = boardForPlayer(model, player.id);
+            const faceDown =
+              model.phase === "placing" &&
+              player.id !== model.viewerId &&
+              (model.players.find(({ id }) => id === player.id)
+                ?.inFantasyland ??
+                false);
+            return (
+              <section
+                key={player.id}
+                aria-labelledby={`player-${player.seat}`}
               >
-                Reconnect
-              </button>
-            ) : null}
-            {onLeave ? (
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={onLeave}
-              >
-                Return home
-              </button>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-
-      <aside className="game-scoreboard" aria-label="Scores">
-        <ol>
-          {model.players.map((player) => (
-            <li key={player.id} data-local={player.id === model.viewerId}>
-              <span>
-                {player.displayName}
-                {player.id === model.viewerId ? " (you)" : ""}
-                {player.isAi ? " · AI" : ""}
-              </span>
-              <strong>{player.score} points</strong>
-              {player.connection === "disconnected" ? (
-                <small>Disconnected</small>
-              ) : null}
-              {player.seat === model.dealerSeat ? <small>Dealer</small> : null}
-              {player.id === model.activePlayerId ? (
-                <small>
-                  {player.id === model.viewerId
-                    ? "Your turn"
-                    : player.isThinking
-                      ? "Thinking…"
-                      : "Acting"}
-                </small>
-              ) : null}
-              {player.inFantasyland ? <small>Fantasyland</small> : null}
-            </li>
-          ))}
-        </ol>
-      </aside>
-
-      <section
-        className="game-accessible-board"
-        aria-label="Accessible game board"
-      >
-        {viewPlayers.map((player) => {
-          const board = boardForPlayer(model, player.id);
-          const faceDown =
-            model.phase === "placing" &&
-            player.id !== model.viewerId &&
-            (model.players.find(({ id }) => id === player.id)?.inFantasyland ??
-              false);
-          return (
-            <section key={player.id} aria-labelledby={`player-${player.seat}`}>
-              <h2 id={`player-${player.seat}`}>{player.displayName}</h2>
-              <div className="game-row-list">
-                {ROW_DEFINITIONS.map(({ row, label, capacity }) => {
-                  const cards = board[row];
-                  const staged =
-                    player.id === model.viewerId
-                      ? pendingCards.filter((card) => assignments[card] === row)
-                      : [];
-                  const isValid = validRows.includes(row);
-                  const hiddenCount =
-                    faceDown &&
-                    model.state?.players.find(({ id }) => id === player.id)
-                      ?.placedCardCount === 13
-                      ? capacity
-                      : 0;
-                  const committedCount = Math.max(cards.length, hiddenCount);
-                  return (
-                    <div
-                      className="game-dom-row"
-                      key={row}
-                      aria-label={`${label} row, ${committedCount} committed${staged.length ? `, ${staged.length} staged` : ""}, capacity ${capacity}`}
-                    >
-                      <span>
-                        <strong>{label}</strong>{" "}
-                        {committedCount + staged.length}/{capacity}
-                      </span>
-                      {staged.length > 0 ? (
-                        <span className="game-staged-cards">
-                          <span>Staged:</span>{" "}
-                          {staged.map((card) => (
-                            <button
-                              className="game-staged-card"
-                              key={card}
-                              type="button"
-                              aria-pressed={selectedCard === card}
-                              onClick={() => selectCard(card)}
-                            >
-                              {cardName(card)}
-                            </button>
-                          ))}
+                <h2 id={`player-${player.seat}`}>{player.displayName}</h2>
+                <div className="game-row-list">
+                  {ROW_DEFINITIONS.map(({ row, label, capacity }) => {
+                    const cards = board[row];
+                    const staged =
+                      player.id === model.viewerId
+                        ? pendingCards.filter(
+                            (card) => assignments[card] === row,
+                          )
+                        : [];
+                    const isValid = validRows.includes(row);
+                    const hiddenCount =
+                      faceDown &&
+                      model.state?.players.find(({ id }) => id === player.id)
+                        ?.placedCardCount === 13
+                        ? capacity
+                        : 0;
+                    const committedCount = Math.max(cards.length, hiddenCount);
+                    return (
+                      <div
+                        className="game-dom-row"
+                        key={row}
+                        aria-label={`${label} row, ${committedCount} committed${staged.length ? `, ${staged.length} staged` : ""}, capacity ${capacity}`}
+                      >
+                        <span>
+                          <strong>{label}</strong>{" "}
+                          {committedCount + staged.length}/{capacity}
                         </span>
-                      ) : null}
-                      <span className="game-card-names">
-                        {committedCount > 0
-                          ? faceDown
-                            ? `${committedCount} face-down card${committedCount === 1 ? "" : "s"}`
-                            : cards.map(cardName).join(", ")
-                          : "Empty"}
-                      </span>
-                      {player.id === model.viewerId && selectedCard ? (
-                        <button
-                          type="button"
-                          disabled={!isValid}
-                          onClick={() => selectRow(row)}
-                        >
-                          {isValid
-                            ? `Place in ${label}`
-                            : `${label} unavailable`}
-                        </button>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
-      </section>
-
-      {model.phase === "complete" && model.showdown ? (
-        <section className="game-showdown" aria-labelledby="showdown-title">
-          <p className="step">Hand {model.handNumber} complete</p>
-          <h2 id="showdown-title">Showdown</h2>
-          <ul className="showdown-player-results">
-            {model.showdown.players.map((result) => {
-              const player = model.players.find(
-                ({ id }) => id === result.playerId,
-              );
-              return (
-                <li key={result.playerId}>
-                  <strong>{player?.displayName ?? result.playerId}</strong>
-                  <span>
-                    {result.evaluation.fouled
-                      ? "Fouled board"
-                      : `${result.evaluation.royalties.total} royalties`}
-                  </span>
-                  <span>{signed(result.totalDelta)} this hand</span>
-                  {result.fantasyland.qualifiesForNextHand ? (
-                    <span>Fantasyland next hand</span>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-          <div className="showdown-pairs">
-            {model.showdown.pairs.map((pair) => {
-              const first =
-                model.players.find(({ id }) => id === pair.firstPlayerId)
-                  ?.displayName ?? pair.firstPlayerId;
-              const second =
-                model.players.find(({ id }) => id === pair.secondPlayerId)
-                  ?.displayName ?? pair.secondPlayerId;
-              return (
-                <article key={`${pair.firstPlayerId}:${pair.secondPlayerId}`}>
-                  <h3>
-                    {first} vs {second}
-                  </h3>
-                  <dl>
-                    <div>
-                      <dt>Front</dt>
-                      <dd>{resultLabel(pair.rows.front)}</dd>
-                    </div>
-                    <div>
-                      <dt>Middle</dt>
-                      <dd>{resultLabel(pair.rows.middle)}</dd>
-                    </div>
-                    <div>
-                      <dt>Back</dt>
-                      <dd>{resultLabel(pair.rows.back)}</dd>
-                    </div>
-                    <div>
-                      <dt>Rows</dt>
-                      <dd>{signed(pair.rowDelta)}</dd>
-                    </div>
-                    <div>
-                      <dt>Scoop</dt>
-                      <dd>{signed(pair.scoopDelta)}</dd>
-                    </div>
-                    <div>
-                      <dt>Foul</dt>
-                      <dd>{signed(pair.foulDelta)}</dd>
-                    </div>
-                    <div>
-                      <dt>Royalties</dt>
-                      <dd>{signed(pair.royaltyDelta)}</dd>
-                    </div>
-                    <div>
-                      <dt>Total</dt>
-                      <dd>{signed(pair.totalDelta)}</dd>
-                    </div>
-                  </dl>
-                </article>
-              );
-            })}
-          </div>
+                        {staged.length > 0 ? (
+                          <span className="game-staged-cards">
+                            <span>Staged:</span>{" "}
+                            {staged.map((card) => (
+                              <button
+                                className="game-staged-card"
+                                key={card}
+                                type="button"
+                                aria-pressed={selectedCard === card}
+                                onClick={() => selectCard(card)}
+                              >
+                                {cardName(card)}
+                              </button>
+                            ))}
+                          </span>
+                        ) : null}
+                        <span className="game-card-names">
+                          {committedCount > 0
+                            ? faceDown
+                              ? `${committedCount} face-down card${committedCount === 1 ? "" : "s"}`
+                              : cards.map(cardName).join(", ")
+                            : "Empty"}
+                        </span>
+                        {player.id === model.viewerId && selectedCard ? (
+                          <button
+                            type="button"
+                            disabled={!isValid}
+                            onClick={() => selectRow(row)}
+                          >
+                            {isValid
+                              ? `Place in ${label}`
+                              : `${label} unavailable`}
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
         </section>
-      ) : null}
+
+        {model.phase === "complete" && model.showdown ? (
+          <section className="game-showdown" aria-labelledby="showdown-title">
+            <p className="step">Hand {model.handNumber} complete</p>
+            <h2 id="showdown-title">Showdown</h2>
+            <ul className="showdown-player-results">
+              {model.showdown.players.map((result) => {
+                const player = model.players.find(
+                  ({ id }) => id === result.playerId,
+                );
+                return (
+                  <li key={result.playerId}>
+                    <strong>{player?.displayName ?? result.playerId}</strong>
+                    <span>
+                      {result.evaluation.fouled
+                        ? "Fouled board"
+                        : `${result.evaluation.royalties.total} royalties`}
+                    </span>
+                    <span>{signed(result.totalDelta)} this hand</span>
+                    {result.fantasyland.qualifiesForNextHand ? (
+                      <span>Fantasyland next hand</span>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="showdown-pairs">
+              {model.showdown.pairs.map((pair) => {
+                const first =
+                  model.players.find(({ id }) => id === pair.firstPlayerId)
+                    ?.displayName ?? pair.firstPlayerId;
+                const second =
+                  model.players.find(({ id }) => id === pair.secondPlayerId)
+                    ?.displayName ?? pair.secondPlayerId;
+                return (
+                  <article key={`${pair.firstPlayerId}:${pair.secondPlayerId}`}>
+                    <h3>
+                      {first} vs {second}
+                    </h3>
+                    <dl>
+                      <div>
+                        <dt>Front</dt>
+                        <dd>{resultLabel(pair.rows.front)}</dd>
+                      </div>
+                      <div>
+                        <dt>Middle</dt>
+                        <dd>{resultLabel(pair.rows.middle)}</dd>
+                      </div>
+                      <div>
+                        <dt>Back</dt>
+                        <dd>{resultLabel(pair.rows.back)}</dd>
+                      </div>
+                      <div>
+                        <dt>Rows</dt>
+                        <dd>{signed(pair.rowDelta)}</dd>
+                      </div>
+                      <div>
+                        <dt>Scoop</dt>
+                        <dd>{signed(pair.scoopDelta)}</dd>
+                      </div>
+                      <div>
+                        <dt>Foul</dt>
+                        <dd>{signed(pair.foulDelta)}</dd>
+                      </div>
+                      <div>
+                        <dt>Royalties</dt>
+                        <dd>{signed(pair.royaltyDelta)}</dd>
+                      </div>
+                      <div>
+                        <dt>Total</dt>
+                        <dd>{signed(pair.totalDelta)}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+      </div>
 
       <div
         className="game-accessible-hand"

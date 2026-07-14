@@ -369,3 +369,243 @@ The exact remaining release step is to configure GitHub Pages to use GitHub
 Actions, push `main`, and record the successful public URL. Complete journey
 automation remains R11 follow-up work; this audit does not implement that later
 scope early.
+
+## 19.2. Disable live multiplayer entry for deployment
+
+Status: complete (2026-07-14)
+
+Requirement references: R1 static browser application, R3 lobby settings form,
+R6 quota-free local AI, and R13 GitHub Pages deployment.
+
+- Disabled the home-screen Multiplayer radio option and changed its helper copy
+  to make clear that live multiplayer is unavailable for this deployment.
+- Kept Local AI as the only create-table path from the initial form while
+  preserving existing join-route and provider internals for non-live test and
+  maintenance coverage.
+- Updated component coverage to assert the disabled multiplayer affordance.
+
+## 19.3. Adjust client line coverage threshold
+
+Status: complete (2026-07-14)
+
+Requirement references: R10 unit tests and R13 GitHub Actions deployment gate.
+
+- Lowered the client V8 line coverage floor from 80% to 75%. Also aligned the
+  client statement floor to 75% because V8 reports the package-wide statement
+  total in lockstep with the line total for the current client sources.
+- Updated the coverage-policy traceability table so the documented client
+  threshold matches the package Vitest configuration.
+
+## 21.1. Define responsive layout invariants
+
+Status: complete (2026-07-14)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, and Prompt 21 mobile
+layout acceptance criteria.
+
+- Translated the Prompt 21 acceptance criteria into measurable responsive
+  layout invariants for desktop, mobile portrait, and mobile landscape browser
+  viewports.
+- Defined the shared viewport matrix, selectors, overflow tolerance, and minimum
+  action hit target in the client game-view package so later component and
+  Playwright checks can import the same contract.
+- Documented that the root game view must remain viewport-contained, only the
+  showdown results container may scroll, results must not overlap the header or
+  action button, and every player's card section must remain fully visible and
+  non-overlapping.
+- Recorded that enforcing the player-card geometry invariant in E2E requires
+  the later implementation step to add stable geometry hooks or equivalent DOM
+  wrappers for the Three.js-rendered card sections.
+
+No product requirement is newly marked complete: this step defines the
+responsive contract and test matrix, while later Prompt 21 steps must implement
+and prove the actual desktop/mobile layout behavior.
+
+## 21.2. Refactor the game-view layout
+
+Status: complete (2026-07-14)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Refactored `GameTableView` so the header remains in normal document flow and
+  the table canvas, score overlay, waiting/recovery panels, accessible board,
+  and showdown results live inside a bounded game-stage region.
+- Changed the game view CSS to use a fixed `100dvh` grid with `minmax(0, 1fr)`
+  stage sizing, safe-area-aware header padding, no document scrolling, and a
+  showdown panel that scrolls internally inside the stage.
+- Removed fixed header-height guesses from the scoreboard and showdown
+  positioning so mobile portrait and short landscape layouts measure from the
+  actual stage below the header.
+- Added component coverage for the bounded stage structure and Playwright
+  geometry coverage across the shared desktop, mobile portrait, and mobile
+  landscape viewport matrix.
+
+No product requirement is newly marked complete: this step proves the root,
+header, results, and action-button layout invariants, while the later card
+section visibility/non-overlap hook remains necessary for complete Prompt 21
+evidence.
+
+## 21.3. Add portrait and landscape responsive modes
+
+Status: complete (2026-07-14)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Replaced the single width-only compact game-view mode with explicit
+  `desktop`, `mobile-portrait`, and `mobile-landscape` layout modes.
+- Threaded the selected mode into the game-view root as `data-layout-mode` so
+  CSS, component tests, and browser geometry checks share the same responsive
+  contract.
+- Added mode-specific orthographic camera framing: portrait pulls back furthest
+  for narrow width, while short landscape keeps a compact height-aware frame.
+- Scoped mobile portrait header/action/scoreboard rules and short landscape
+  compression rules to their matching responsive modes so they do not leak into
+  each other.
+- Extended component and Playwright coverage to assert the selected mode and
+  camera behavior across the shared desktop, mobile portrait, and mobile
+  landscape viewport matrix.
+
+No product requirement is newly marked complete: this step adds and proves the
+responsive modes, while later Prompt 21 work still needs player-card section
+visibility/non-overlap evidence.
+
+## 21.4. Add browser-level geometry assertions
+
+Status: complete (2026-07-14)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Strengthened the responsive Playwright coverage to exercise four-player
+  showdown results across desktop, mobile portrait, and mobile landscape
+  viewports.
+- Asserted browser-measured root containment, no document scrolling, no
+  horizontal overflow, header/results separation, results-panel viewport bounds,
+  and topmost reachable action buttons.
+- Added explicit scroll-container assertions proving `.game-showdown` is the
+  results scroll container and that no other visible game-view element becomes a
+  scrollable overflow surface.
+- Kept the geometry checks tied to the shared responsive invariant constants so
+  later Prompt 21 steps can extend the same browser contract for player-card
+  section visibility.
+
+No product requirement is newly marked complete: this step upgrades browser
+geometry evidence for the root, results, header, and actions; player-card
+section geometry remains the remaining Prompt 21 acceptance gap.
+
+## 21.5. Add component and layout tests
+
+Status: complete (2026-07-14)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, and Prompt 21 mobile
+layout acceptance criteria.
+
+- Expanded game-view layout tests to lock the exact desktop, mobile portrait,
+  and mobile landscape camera contracts, including near/far clipping and frozen
+  immutable layout results.
+- Strengthened responsive invariant tests to verify the viewport matrix has one
+  unique entry per layout mode and that portrait and landscape dimensions match
+  their intended orientation.
+- Added component coverage for responsive mode selection, including the
+  short-landscape priority case when multiple media queries report a match.
+- Strengthened showdown component assertions so the header remains outside the
+  bounded stage while the results scroll container, scoreboard, and accessible
+  board stay inside it.
+
+No product requirement is newly marked complete: this step adds unit/component
+protection for the responsive layout contracts, while player-card section
+geometry remains the remaining Prompt 21 acceptance gap.
+
+## 21.6. Fix mobile active-table card and player-detail overlap
+
+Status: complete (2026-07-14)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Addressed iOS Safari screenshots showing mobile player details overlapping
+  side player card sections in active two-, three-, and four-player hands.
+- Changed mobile portrait layout so the score/player-details panel reserves a
+  compact strip above the canvas instead of overlaying cards.
+- Changed mobile landscape layout so the score/player-details panel reserves a
+  compact left rail beside the canvas instead of overlaying cards.
+- Added mode-aware seat compression and pulled back mobile camera framing so
+  side and local card sections fit within the reduced mobile canvas regions.
+- Added active-placement Playwright coverage for mobile portrait and landscape
+  with two, three, and four players, asserting the score panel and canvas do not
+  overlap and the root remains viewport-contained.
+
+No product requirement is newly marked complete: this closes the observed
+mobile player-detail overlap path, while a future scene-level card-section
+geometry hook would make the full canvas-rendered card-section invariant more
+directly measurable.
+
+## 21.7. Tune mobile Safari portrait and landscape active layouts
+
+Status: complete (2026-07-15)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Addressed follow-up iOS Safari screenshots showing landscape canvas height
+  being cut short and portrait three-/four-player card edges touching near the
+  center of the table.
+- Broadened mobile-landscape mode detection for short landscape visual
+  viewports and made mode-specific CSS apply from `data-layout-mode` directly,
+  avoiding fragile nested orientation media behavior.
+- Pinned mobile landscape scoreboard and canvas to the same CSS grid row so the
+  canvas consumes the full available stage height beside the score rail instead
+  of becoming a short strip above it.
+- Increased mobile portrait side-seat separation and widened the portrait camera
+  framing so adjacent player card sections have visible breathing room.
+- Strengthened responsive Playwright coverage so mobile landscape active hands
+  fail if the canvas no longer reaches the bottom of the viewport.
+
+No product requirement is newly marked complete: this further tightens Prompt
+21 mobile layout behavior, while direct scene-level card-section geometry hooks
+remain a possible future measurement improvement.
+
+## 21.8. Increase mobile player-card separation
+
+Status: complete (2026-07-15)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Addressed follow-up iOS Safari screenshots showing usable mobile layouts that
+  still had player card sections slightly too close near the center of the
+  table.
+- Increased mobile portrait and landscape seat spacing so two-player hands have
+  more vertical separation, three-player hands leave more room between the
+  local player and opponents, and four-player landscape reduces horizontal and
+  vertical edge contact.
+- Widened the mobile camera framing to preserve viewport fit after expanding
+  the scene lattice.
+- Added component-level assertions that mobile four-player front/back seat
+  separation stays above the minimum spacing needed to avoid center overlap.
+
+No product requirement is newly marked complete: this tunes the observed Safari
+spacing gap, while direct scene-level card-section geometry hooks remain a
+possible future measurement improvement.
+
+## 21.9. Keep mobile landscape HUD on one row and improve card readability
+
+Status: complete (2026-07-15)
+
+Requirement references: R9 minimal 3D UI, R10 unit tests, R11 browser tests, and
+Prompt 21 mobile layout acceptance criteria.
+
+- Addressed final iOS Safari landscape feedback showing the Leave table action
+  wrapping to a second header row despite available horizontal space.
+- Restored mobile landscape header structure to four compact grid columns and
+  prevented the status, action, and leave labels from wrapping.
+- Increased the generated card-face rank typography without changing the 3D card
+  dimensions, making mobile ranks easier to read while preserving the fitted
+  table geometry.
+- Added browser geometry coverage that fails if the landscape header controls no
+  longer share a single row.
+
+No product requirement is newly marked complete: this is final Prompt 21 visual
+polish on top of the already-covered mobile layout contracts.

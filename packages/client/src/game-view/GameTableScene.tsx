@@ -48,14 +48,22 @@ function createFaceTexture(code: CardCode): Texture {
     card.suit === "d" || card.suit === "h"
       ? GAME_VIEW_TOKENS.color.redSuit
       : GAME_VIEW_TOKENS.color.ink;
-  context.font = `700 116px ${GAME_VIEW_TOKENS.typography.card}`;
+  context.font = `700 ${GAME_VIEW_TOKENS.cardFace.rankFontPx}px ${GAME_VIEW_TOKENS.typography.card}`;
   context.textAlign = "left";
   context.textBaseline = "top";
-  context.fillText(rank, 12, 0);
+  context.fillText(
+    rank,
+    GAME_VIEW_TOKENS.cardFace.rankX,
+    GAME_VIEW_TOKENS.cardFace.rankY,
+  );
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = `196px ${GAME_VIEW_TOKENS.typography.card}`;
-  context.fillText(suit, 128, 220);
+  context.font = `${GAME_VIEW_TOKENS.cardFace.suitFontPx}px ${GAME_VIEW_TOKENS.typography.card}`;
+  context.fillText(
+    suit,
+    GAME_VIEW_TOKENS.cardFace.suitX,
+    GAME_VIEW_TOKENS.cardFace.suitY,
+  );
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;

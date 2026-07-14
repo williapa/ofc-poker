@@ -3,6 +3,7 @@ import type { LobbyMetadata } from "@ofcpoker/data-provider";
 import {
   resolveOfcRound,
   type CardCode,
+  type OfcRoundResult,
   type OfcHandAction,
   type OfcPlayerVisibleState,
 } from "@ofcpoker/game-engine";
@@ -14,6 +15,11 @@ import {
   GAME_VIEW_TOKENS,
 } from "../src/game-view/design-system";
 import { createCameraLayout, createSeatLayout } from "../src/game-view/layout";
+import {
+  RESPONSIVE_LAYOUT_INVARIANTS,
+  RESPONSIVE_VIEWPORTS,
+  type ResponsiveLayoutMode,
+} from "../src/game-view/responsive-layout-invariants";
 import { expectNoCriticalAccessibilityViolations } from "./setup";
 
 function players(count: 2 | 3 | 4): readonly GameViewPlayer[] {
@@ -100,6 +106,29 @@ function placeAction(row: "front" | "middle" | "back"): OfcHandAction {
   };
 }
 
+function resolvedTwoPlayerRound(): OfcRoundResult {
+  return resolveOfcRound([
+    {
+      playerId: "player-0",
+      board: {
+        front: ["Qc", "Qd", "2c"],
+        middle: ["2h", "3h", "4h", "5h", "6h"],
+        back: ["Ts", "Js", "Qs", "Ks", "As"],
+      },
+      wasInFantasyland: false,
+    },
+    {
+      playerId: "player-1",
+      board: {
+        front: ["Kc", "Kd", "3c"],
+        middle: ["4c", "5c", "6c", "7c", "8c"],
+        back: ["Th", "Jh", "Qh", "Kh", "Ah"],
+      },
+      wasInFantasyland: false,
+    },
+  ]);
+}
+
 function model(
   count: 2 | 3 | 4,
   overrides: Partial<GameViewModel> = {},
@@ -121,6 +150,22 @@ function model(
   };
 }
 
+function mockMediaQueries(matchingQueries: readonly string[]) {
+  return vi.spyOn(window, "matchMedia").mockImplementation(
+    (query: string) =>
+      ({
+        matches: matchingQueries.includes(query),
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  );
+}
+
 describe("seat and camera layout", () => {
   test.each([2, 3, 4] as const)(
     "lays out %i seats with the viewer stable at the bottom",
@@ -139,11 +184,66 @@ describe("seat and camera layout", () => {
     },
   );
 
-  test("uses a wider compact camera framing for mobile", () => {
-    const desktop = createCameraLayout(false);
-    const mobile = createCameraLayout(true);
-    expect(mobile.zoom).toBeLessThan(desktop.zoom);
-    expect(mobile.position[1]).toBeGreaterThan(desktop.position[1]);
+  test("compresses mobile side seats so card sections stay inside the mobile frame", () => {
+    const desktop = createSeatLayout(players(4), "player-0");
+    const portrait = createSeatLayout(
+      players(4),
+      "player-0",
+      "mobile-portrait",
+    );
+    const landscape = createSeatLayout(
+      players(4),
+      "player-0",
+      "mobile-landscape",
+    );
+
+    expect(portrait[1]?.position[0]).toBeGreaterThan(
+      desktop[1]?.position[0] ?? 0,
+    );
+    expect(portrait[3]?.position[0]).toBeLessThan(desktop[3]?.position[0] ?? 0);
+    expect(Math.abs(portrait[2]?.position[2] ?? 0)).toBeLessThan(
+      Math.abs(desktop[2]?.position[2] ?? 0),
+    );
+    expect(Math.abs(landscape[2]?.position[2] ?? 0)).toBeLessThan(
+      Math.abs(portrait[2]?.position[2] ?? 0),
+    );
+    expect(
+      Math.abs(
+        (portrait[0]?.position[2] ?? 0) - (portrait[2]?.position[2] ?? 0),
+      ),
+    ).toBeGreaterThan(8);
+    expect(
+      Math.abs(
+        (landscape[0]?.position[2] ?? 0) - (landscape[2]?.position[2] ?? 0),
+      ),
+    ).toBeGreaterThan(8);
+  });
+
+  test.each([
+    ["desktop", [0, 11, 8.5], 58],
+    ["mobile-portrait", [0, 16.7, 15], 19],
+    ["mobile-landscape", [0, 14.8, 12.2], 21],
+  ] as const)(
+    "uses stable %s camera framing",
+    (mode, expectedPosition, expectedZoom) => {
+      const camera = createCameraLayout(mode);
+      expect(camera.position).toEqual(expectedPosition);
+      expect(camera.zoom).toBe(expectedZoom);
+      expect(camera.near).toBe(0.1);
+      expect(camera.far).toBe(100);
+      expect(Object.isFrozen(camera)).toBe(true);
+    },
+  );
+
+  test("keeps mobile cameras wider than desktop and portrait wider than landscape", () => {
+    const desktop = createCameraLayout("desktop");
+    const portrait = createCameraLayout("mobile-portrait");
+    const landscape = createCameraLayout("mobile-landscape");
+    expect(portrait.zoom).toBeLessThan(desktop.zoom);
+    expect(landscape.zoom).toBeLessThan(desktop.zoom);
+    expect(portrait.zoom).toBeLessThan(landscape.zoom);
+    expect(portrait.position[1]).toBeGreaterThan(desktop.position[1]);
+    expect(landscape.position[1]).toBeGreaterThan(desktop.position[1]);
   });
 
   test("uses cards substantially larger than the first readability pass", () => {
@@ -152,11 +252,50 @@ describe("seat and camera layout", () => {
       GAME_VIEW_TOKENS.card.width * GAME_VIEW_TOKENS.card.height,
     ).toBeGreaterThanOrEqual(previousArea * 1.5);
   });
+
+  test("defines responsive viewport and geometry invariants", () => {
+    expect(RESPONSIVE_VIEWPORTS.map(({ mode }) => mode)).toEqual([
+      "desktop",
+      "mobile-portrait",
+      "mobile-landscape",
+    ]);
+    expect(
+      RESPONSIVE_VIEWPORTS.every(
+        ({ width, height }) => width > 0 && height > 0,
+      ),
+    ).toBe(true);
+    expect(RESPONSIVE_LAYOUT_INVARIANTS.rootTestId).toBe("game-view");
+    expect(RESPONSIVE_LAYOUT_INVARIANTS.scrollContainerSelector).toBe(
+      RESPONSIVE_LAYOUT_INVARIANTS.resultsSelector,
+    );
+    expect(
+      RESPONSIVE_LAYOUT_INVARIANTS.minimumHitTargetPx,
+    ).toBeGreaterThanOrEqual(44);
+    expect(new Set(RESPONSIVE_VIEWPORTS.map(({ mode }) => mode)).size).toBe(
+      RESPONSIVE_VIEWPORTS.length,
+    );
+    expect(
+      RESPONSIVE_VIEWPORTS.find(({ mode }) => mode === "mobile-portrait")
+        ?.height,
+    ).toBeGreaterThan(
+      RESPONSIVE_VIEWPORTS.find(({ mode }) => mode === "mobile-portrait")
+        ?.width ?? 0,
+    );
+    expect(
+      RESPONSIVE_VIEWPORTS.find(({ mode }) => mode === "mobile-landscape")
+        ?.width,
+    ).toBeGreaterThan(
+      RESPONSIVE_VIEWPORTS.find(({ mode }) => mode === "mobile-landscape")
+        ?.height ?? 0,
+    );
+  });
 });
 
 test("defines one rank and one central suit label per card face", () => {
   expect(cardFaceLabels("Th")).toEqual(["10", "♥"]);
   expect(cardFaceLabels("Th").filter((label) => label === "♥")).toHaveLength(1);
+  expect(GAME_VIEW_TOKENS.cardFace.rankFontPx).toBeGreaterThanOrEqual(140);
+  expect(GAME_VIEW_TOKENS.cardFace.suitFontPx).toBeGreaterThanOrEqual(196);
 });
 
 test.each([2, 3, 4] as const)(
@@ -334,6 +473,68 @@ test("keeps a useful DOM game surface when WebGL is unsupported", () => {
   );
 });
 
+test("contains table overlays inside the bounded game stage", () => {
+  render(
+    <GameTableView
+      model={model(2)}
+      onAction={() => undefined}
+      webglSupported={false}
+    />,
+  );
+
+  const root = screen.getByTestId(RESPONSIVE_LAYOUT_INVARIANTS.rootTestId);
+  const stage = root.querySelector(".game-stage");
+  expect(stage).not.toBeNull();
+  expect(
+    root.querySelector(RESPONSIVE_LAYOUT_INVARIANTS.headerSelector),
+  ).not.toBeNull();
+  expect(
+    root.querySelector(RESPONSIVE_LAYOUT_INVARIANTS.headerSelector)
+      ?.parentElement,
+  ).toBe(root);
+  expect(root.querySelector(".game-canvas-region")?.parentElement).toBe(stage);
+  expect(
+    root.querySelector(RESPONSIVE_LAYOUT_INVARIANTS.resultsSelector),
+  ).not.toBeInTheDocument();
+});
+
+const RESPONSIVE_MODE_CASES: readonly [
+  ResponsiveLayoutMode,
+  readonly string[],
+][] = [
+  ["desktop", []],
+  ["mobile-portrait", ["(max-width: 700px) and (orientation: portrait)"]],
+  ["mobile-landscape", ["(max-height: 700px) and (orientation: landscape)"]],
+  [
+    "mobile-landscape",
+    [
+      "(max-width: 700px) and (orientation: portrait)",
+      "(max-height: 700px) and (orientation: landscape)",
+    ],
+  ],
+];
+
+test.each(RESPONSIVE_MODE_CASES)(
+  "selects %s responsive layout mode",
+  (mode, matchingQueries) => {
+    const matchMedia = mockMediaQueries(matchingQueries);
+    try {
+      render(
+        <GameTableView
+          model={model(2)}
+          onAction={() => undefined}
+          webglSupported={false}
+        />,
+      );
+      expect(
+        screen.getByTestId(RESPONSIVE_LAYOUT_INVARIANTS.rootTestId),
+      ).toHaveAttribute("data-layout-mode", mode);
+    } finally {
+      matchMedia.mockRestore();
+    }
+  },
+);
+
 test("announces reconnect progress before placement resumes", () => {
   render(
     <GameTableView
@@ -422,26 +623,6 @@ test("fills unoccupied configured seats while a lobby is waiting", () => {
 });
 
 test("announces disconnects and presents pairwise showdown details", () => {
-  const round = resolveOfcRound([
-    {
-      playerId: "player-0",
-      board: {
-        front: ["Qc", "Qd", "2c"],
-        middle: ["2h", "3h", "4h", "5h", "6h"],
-        back: ["Ts", "Js", "Qs", "Ks", "As"],
-      },
-      wasInFantasyland: false,
-    },
-    {
-      playerId: "player-1",
-      board: {
-        front: ["Kc", "Kd", "3c"],
-        middle: ["4c", "5c", "6c", "7c", "8c"],
-        back: ["Th", "Jh", "Qh", "Kh", "Ah"],
-      },
-      wasInFantasyland: false,
-    },
-  ]);
   const state = visibleState(2);
   render(
     <GameTableView
@@ -459,7 +640,7 @@ test("announces disconnects and presents pairwise showdown details", () => {
           privateData: { pendingCards: [] },
         },
         legalActions: [],
-        showdown: round,
+        showdown: resolvedTwoPlayerRound(),
         canStartNextHand: true,
       })}
       onAction={() => undefined}
@@ -478,6 +659,29 @@ test("announces disconnects and presents pairwise showdown details", () => {
     "game-attention-action",
   );
   expect(screen.getAllByText("Royalties").length).toBeGreaterThan(0);
+  expect(
+    screen.getByRole("heading", { name: "Showdown" }).closest("section")
+      ?.parentElement,
+  ).toHaveClass("game-stage");
+  const root = screen.getByTestId(RESPONSIVE_LAYOUT_INVARIANTS.rootTestId);
+  const stage = root.querySelector(".game-stage");
+  const header = root.querySelector(
+    RESPONSIVE_LAYOUT_INVARIANTS.headerSelector,
+  );
+  const results = root.querySelector(
+    RESPONSIVE_LAYOUT_INVARIANTS.resultsSelector,
+  );
+  expect(header?.parentElement).toBe(root);
+  expect(results?.parentElement).toBe(stage);
+  expect(
+    root.querySelector(RESPONSIVE_LAYOUT_INVARIANTS.scrollContainerSelector),
+  ).toBe(results);
+  expect(
+    screen.getByRole("complementary", { name: "Scores" }).parentElement,
+  ).toBe(stage);
+  expect(
+    screen.getByRole("region", { name: "Accessible game board" }).parentElement,
+  ).toBe(stage);
 });
 
 test("announces AI thinking from runner state without consulting a clock", () => {
