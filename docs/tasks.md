@@ -324,3 +324,34 @@ Requirement references: R2 shareable lobby, R5 two-to-four-player lobby capacity
 - Kept the existing in-memory provider and fake boundary as the quota-free local testing strategy. A network-faithful Playroom clone remains medium-to-high complexity and would duplicate room routing, presence, ordering, host authority, reconnect grace periods, and failure behavior without improving coverage of this SDK-specific defect.
 
 No requirement is newly marked complete until the documented two-browser Playroom smoke procedure confirms the hosted service behavior.
+
+## 19.1. Complete the final requirement audit and release documentation
+
+Status: complete (2026-07-13)
+
+Requirement references: R1–R13 final evidence audit; especially R1, R2, R5,
+R6, R9, R11, and R13 release boundaries.
+
+- Audited every product requirement against deterministic engine, provider, AI,
+  runner, component, browser, workflow, and supplied manual evidence. Marked
+  R2–R5, R8, and R9 complete; retained the existing completed R6, R7, R10, and
+  R12 status; and left R1, R11, and R13 open without unsupported claims.
+- Recorded the supplied 2026-07-13 two-player Playroom create/join/basic-gameplay
+  smoke result while explicitly leaving three/four-player, reconnect,
+  host-departure, and mobile real-service scenarios unverified. No service calls
+  were made during this audit.
+- Reworked the root README into player and contributor documentation covering
+  rules, both lobby modes, setup, tests, architecture, accessibility/fallbacks,
+  deployment, Playroom quota boundaries, and known limitations.
+- Reviewed the desktop home and local game surfaces, runtime console, reduced
+  motion, keyboard placement, WebGL fallback coverage, production bundles, and
+  secret/debug/source-import/TODO scans. Mobile remains an explicit follow-up,
+  as allowed by the release scope.
+- Ran the clean-install and full release pipeline documented in
+  `docs/workflows.md`; the final command results are reported with the task
+  handoff.
+
+The exact remaining release step is to configure GitHub Pages to use GitHub
+Actions, push `main`, and record the successful public URL. Complete journey
+automation remains R11 follow-up work; this audit does not implement that later
+scope early.

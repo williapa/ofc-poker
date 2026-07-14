@@ -10,13 +10,13 @@ otherwise-open product requirement is complete.
 | R2 shareable lobby     | `packages/client/tests/App.test.tsx` (create/join/invite/recovery), `packages/data-provider/tests/contract.ts`, `packages/data-provider/tests/playroom-data-provider.test.ts` |
 | R3 settings form       | `packages/client/tests/lobby.test.ts`, `packages/client/tests/App.test.tsx`, `tests/e2e/app-shell.spec.ts`                                                                    |
 | R4 standard OFC game   | `packages/game-engine/tests/hand-lifecycle.test.ts`, `scoring.test.ts`, `match.test.ts`; `packages/client/tests/game-runner.test.ts`, `game-view.test.tsx`                    |
-| R5 two to four players | provider contract capacity cases, generated engine invariants, AI simulations, client seat-layout cases                                                                       |
+| R5 two to four players | provider contract capacity cases, generated engine invariants, AI simulations, client runner cases, and client seat-layout cases for each supported count                     |
 | R6 local AI lobby      | `packages/client/tests/providers.test.ts`, `local-ai.test.ts`, `game-runner.test.ts`; local creation browser case                                                             |
 | R7 configurable AI     | `packages/ai-player/tests/ai-player.test.ts` (presets, seeded baseline/heuristic decisions, every deal action shape, Fantasyland arrangement, simulations)                    |
 | R8 fixed lobby rules   | provider contract immutable-settings case; `packages/client/tests/App.test.tsx` join summary; `lobby.test.ts` settings construction                                           |
 | R9 3D UI               | `packages/client/tests/game-view.test.tsx` (2–4 seats, camera, cards, fallback, DOM states); production build                                                                 |
 | R10 unit tests         | all Vitest suites; package coverage gates run through root `npm run test:coverage`                                                                                            |
-| R11 browser tests      | `tests/e2e/app-shell.spec.ts` (local creation, validation, malformed join); broader browser automation remains open                                                           |
+| R11 browser tests      | `tests/e2e/app-shell.spec.ts` (production load, local creation and keyboard placement, validation, malformed join, repository-path refresh); complete journeys remain open    |
 | R12 local provider     | local provider contract and option/failure tests; `packages/client/tests/providers.test.ts` proves no network or Playroom loading                                             |
 | R13 GitHub Pages       | `pages.yml` gates deployment on validation; Playwright builds and reloads home/join URLs under the configured repository base path                                            |
 
@@ -68,3 +68,13 @@ line. All packages require 100% of tests to pass in addition to these floors:
 
 CI enforces these floors with `npm run test:coverage` after format, lint, and
 type-check, then verifies the production build and Chromium E2E subset.
+
+## Manual evidence boundary
+
+On 2026-07-13, the project owner manually created a two-player Playroom lobby,
+joined it by link, and exercised basic gameplay successfully. The result closes
+the real-service smoke gap for that narrow scenario only. Automated two-,
+three-, and four-player evidence uses the local provider or fake Playroom
+boundary; three/four-player, reconnect, host-departure, and mobile real-service
+behavior is not inferred from the two-player result. Automated audits must not
+contact Playroom or consume its quota.

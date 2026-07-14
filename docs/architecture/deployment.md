@@ -5,3 +5,13 @@ The client builds to `packages/client/dist` as static assets. `.github/workflows
 Repository-page deployments live below `/<repository>/`, so Vite normalizes the configurable base to `/<repository>/`. Lobby navigation uses `?lobby=<id>` on the repository index; both home and join links therefore request the real `index.html`, and no history-fallback rewrite or custom `404.html` router shim is required. See `docs/architecture/system.md` for URL construction and validation rules.
 
 Deployment must not contain Playroom credentials. AI/local builds and automated tests use the local provider and do not initialize the Playroom adapter.
+
+## Current release state
+
+As of 2026-07-13, the workflow and repository-page build are implemented and
+verified locally, but no successful public Pages URL has been recorded. R1 and
+R13 therefore remain open. The remaining deployment action is to select GitHub
+Actions as the repository's Pages source, push `main`, confirm the `Deploy
+GitHub Pages` workflow succeeds, and record its `page_url` in the release
+documentation. This repository checkout has no configured remote from which an
+owner or public URL can be inferred safely.

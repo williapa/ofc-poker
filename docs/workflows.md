@@ -84,6 +84,12 @@ no Playroom quota. The optional real-service, two-browser sandbox procedure and
 its public game-ID setup are documented in `packages/data-provider/README.md`.
 Account credentials and reconnect tokens must not be committed.
 
+The most recent real-service smoke test was performed manually on 2026-07-13:
+a two-player lobby was created, joined by link, and exercised through basic
+gameplay successfully. Three- and four-player, reconnect, host-departure, and
+mobile real-service scenarios remain future manual checks. Do not rerun the
+service smoke as part of an ordinary clean-install or CI audit.
+
 The complete manual procedure now covers two-, three-, and four-browser
 capacity, private-card visibility, peer refresh/reconnect, host closure, full and
 missing rooms, initialization and compatibility failures, cleanup, and the
