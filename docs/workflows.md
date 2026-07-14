@@ -55,7 +55,7 @@ npm run build
 npm run test:e2e
 ```
 
-The aggregate commands fail when any workspace fails. `typecheck` and `test` build domain packages in dependency order so consumers resolve only declared public exports. Vitest runs client component tests in JSDOM and domain package tests in Node. Playwright builds and serves the static client, then runs the browser suite in Chromium. The production build emits the static client to `packages/client/dist`.
+The aggregate commands fail when any workspace fails. `typecheck` and `test` build domain packages in dependency order so consumers resolve only declared public exports. Vitest runs client component tests in JSDOM and domain package tests in Node. Playwright builds and serves the static client, then runs the browser suite in Chromium. Its explicit `VITE_E2E=true` build enables deterministic decks, immediate AI pacing, and a preview-server-only in-memory multiplayer transport so isolated browser contexts share lobbies without Playroom credentials or quota. Those hooks are absent or disabled in ordinary production builds. The production build emits the static client to `packages/client/dist`.
 
 Each package can also be checked independently from the repository root:
 
@@ -97,7 +97,7 @@ documented 10-daily-user free-tier constraint. Peer reconnect capabilities are
 stored only in that browser profile's session storage; host sessions are not
 recoverable under the project's no-host-migration policy.
 
-Generated `dist`, TypeScript build-info, coverage, and browser-test artifacts are ignored by git.
+Generated `dist`, TypeScript build-info, coverage, Playwright screenshots, traces, reports, and browser-test artifacts are ignored by git. Screenshots and traces are retained on failure.
 
 ## GitHub Pages deployment
 

@@ -325,6 +325,20 @@ Requirement references: R2 shareable lobby, R5 two-to-four-player lobby capacity
 
 No requirement is newly marked complete until the documented two-browser Playroom smoke procedure confirms the hosted service behavior.
 
+## 20. Add Playwright end-to-end journeys
+
+Status: complete (2026-07-13)
+
+Requirement references: R2–R6, R8–R12; completes R11.
+
+- Added production-build browser journeys for form validation, deterministic Local AI play through showdown, score presentation, and starting hand two.
+- Added an explicit E2E-only Playroom-boundary emulator backed by the Vite preview server so isolated browser contexts exercise the real host-authoritative provider and runner protocol without credentials, external availability, or service quota.
+- Covered multi-context create/join, immutable settings, synchronized placement through showdown, two-to-four-seat admission, full and missing lobbies, malformed links, host-refresh recovery policy, and WebGL fallback with semantic controls retained.
+- Enabled deterministic E2E decks and immediate AI pacing only under `VITE_E2E=true`; normal production builds retain shuffled decks, configured AI pacing, and the real lazy Playroom boundary.
+- Retained screenshots and traces on failure and kept all generated browser artifacts ignored.
+
+The browser suite now provides complete high-value user-journey evidence for R11. Public deployment evidence for R1 and R13 remains open.
+
 ## 19.1. Complete the final requirement audit and release documentation
 
 Status: complete (2026-07-13)

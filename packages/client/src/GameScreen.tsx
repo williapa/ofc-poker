@@ -13,6 +13,7 @@ import type { GameRunner, OfcLobbyConnection } from "./contracts/game-runner";
 import { createOfcGameRunner } from "./game-runner";
 import { GameTableView } from "./game-view";
 import { createLocalAiSeats } from "./local-ai";
+import { createImmediateLocalAiSeats } from "./local-ai";
 
 export interface GameScreenProps {
   readonly connection: OfcLobbyConnection;
@@ -23,7 +24,11 @@ export interface GameScreenProps {
 
 function aiSeatsFor(connection: OfcLobbyConnection) {
   if (connection.lobby.settings.mode !== "local-ai") return [];
-  return createLocalAiSeats({
+  const createSeats =
+    import.meta.env.VITE_E2E === "true"
+      ? createImmediateLocalAiSeats
+      : createLocalAiSeats;
+  return createSeats({
     lobbyId: connection.lobby.id,
     seatCount: connection.lobby.settings.seatCount,
   });
@@ -66,8 +71,11 @@ export function GameScreen({
       connection,
       view: bridge.view,
       aiSeats: aiSeatsFor(connection),
-      deckForHand: () =>
-        shuffleDeck(Math.random, createStandardDeck()).map(serializeCard),
+      deckForHand: () => {
+        const random =
+          import.meta.env.VITE_E2E === "true" ? () => 0.5 : Math.random;
+        return shuffleDeck(random, createStandardDeck()).map(serializeCard);
+      },
       disposeMode:
         connection.lobby.settings.mode === "multiplayer"
           ? "disconnect"

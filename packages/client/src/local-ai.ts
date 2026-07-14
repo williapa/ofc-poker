@@ -119,3 +119,13 @@ export function createLocalAiSeats(
     },
   );
 }
+
+/** Explicit E2E seam; production profiles retain their presentation delays. */
+export function createImmediateLocalAiSeats(
+  options: Omit<CreateLocalAiSeatsOptions, "delayFactory">,
+): readonly RunnerAiSeat[] {
+  return createLocalAiSeats({
+    ...options,
+    delayFactory: () => ({ wait: async () => undefined, dispose() {} }),
+  });
+}

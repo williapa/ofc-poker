@@ -48,6 +48,8 @@ otherwise-open product requirement is complete.
 | Listener, connection, runner, AI cleanup      | provider disposal contract; runner lifecycle, remount, and AI cancellation cases                                       |
 | SDK/protocol failures                         | Playroom boundary RPC acknowledgement, adapter initialization and incompatible-version cases; App recovery-copy cases  |
 | WebGL absence                                 | game-view fallback case retains the complete accessible DOM surface                                                    |
+| Complete browser journeys                     | production-build Playwright covers deterministic Local AI showdown/next hand and isolated-context multiplayer showdown |
+| Browser multiplayer admission and recovery    | Playwright covers fixed settings, 2–4 capacity, full/missing lobbies, invalid links, and the no-host-refresh policy    |
 | Home, waiting, active, showdown accessibility | axe-core serious/critical scans in `App.test.tsx` and `game-view.test.tsx`, plus focused role/name/keyboard assertions |
 
 Tests use explicit deck order, seeded random sources, injected IDs, fake timers, and

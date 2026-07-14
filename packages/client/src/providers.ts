@@ -29,6 +29,17 @@ export function createBrowserProviderFactory(
       }
 
       const gameId = options.playroomGameId?.trim();
+      if (import.meta.env.VITE_E2E === "true") {
+        const [{ PlayroomDataProvider }, { HttpPlayroomBoundary }] =
+          await Promise.all([
+            import("@ofcpoker/data-provider/playroom"),
+            import("./test-support/http-playroom-boundary"),
+          ]);
+        return new PlayroomDataProvider({
+          gameId: "e2e-emulator",
+          boundary: new HttpPlayroomBoundary(),
+        });
+      }
       if (!gameId) {
         throw new Error(
           "Multiplayer is not configured for this deployment. Choose Local AI or ask the site owner to configure Playroom.",

@@ -6,13 +6,17 @@ const deploymentPath = process.env.VITE_BASE_PATH
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  fullyParallel: false,
+  // Full-hand WebGL journeys are resource-intensive and share the preview
+  // server's in-memory E2E transport. Serial workers keep CI deterministic.
+  workers: 1,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: `http://127.0.0.1:4173${deploymentPath}`,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
   },
   projects: [
     {
@@ -22,7 +26,7 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      "npm run build && npm run preview --workspace @ofcpoker/client -- --host 127.0.0.1",
+      "VITE_E2E=true npm run build && VITE_E2E=true npm run preview --workspace @ofcpoker/client -- --host 127.0.0.1",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
   },
