@@ -312,3 +312,15 @@ Requirement references: R1 static browser application, R2 repository-safe sharea
 - Documented Pages settings, branch protection, deployment URL, local reproduction, permissions, routing, asset troubleshooting, and the credential-free/quota-free CI boundary.
 
 R13 remains open until a successful deployment demonstrates that the public repository page is available. No other product requirement is newly marked complete.
+
+## 19. Fix Playroom join broadcast completion
+
+Status: implementation complete (2026-07-13); real-service smoke verification remains manual
+
+Requirement references: R2 shareable lobby, R5 two-to-four-player lobby capacity, and R10 unit tests.
+
+- Corrected the production Playroom boundary to acknowledge every inbound RPC. Playroom 0.0.97 delivers an RPC payload but leaves the sender's `RPC.call` promise pending unless the registered handler returns a response; the pending promise stalled the host runner before it could render the second participant or publish the initial authoritative game state.
+- Added a boundary-level regression test that exercises the installed SDK's response contract rather than relying only on the in-memory Playroom fake, whose send methods had resolved without requiring a handler response.
+- Kept the existing in-memory provider and fake boundary as the quota-free local testing strategy. A network-faithful Playroom clone remains medium-to-high complexity and would duplicate room routing, presence, ordering, host authority, reconnect grace periods, and failure behavior without improving coverage of this SDK-specific defect.
+
+No requirement is newly marked complete until the documented two-browser Playroom smoke procedure confirms the hosted service behavior.

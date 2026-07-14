@@ -46,7 +46,7 @@ otherwise-open product requirement is complete.
 | Reconnect and latest-snapshot replay          | provider contract reconnect case; client reconnect store, runner remount, and App automatic restore cases              |
 | Invalid/malicious actions and snapshots       | engine validation tables; runner malicious payload and invalid-snapshot recovery cases                                 |
 | Listener, connection, runner, AI cleanup      | provider disposal contract; runner lifecycle, remount, and AI cancellation cases                                       |
-| SDK/protocol failures                         | Playroom adapter initialization and incompatible-version cases; App recovery-copy cases                                |
+| SDK/protocol failures                         | Playroom boundary RPC acknowledgement, adapter initialization and incompatible-version cases; App recovery-copy cases  |
 | WebGL absence                                 | game-view fallback case retains the complete accessible DOM surface                                                    |
 | Home, waiting, active, showdown accessibility | axe-core serious/critical scans in `App.test.tsx` and `game-view.test.tsx`, plus focused role/name/keyboard assertions |
 

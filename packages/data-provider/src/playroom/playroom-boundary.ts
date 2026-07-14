@@ -105,6 +105,10 @@ class PlayroomKitSession implements PlayroomBoundarySession {
           sender: playerView(sender),
         };
         for (const listener of [...this.#messageListeners]) listener(message);
+        // Playroom only resolves RPC.call when a registered handler returns a
+        // non-undefined response. Without this acknowledgement, messages are
+        // delivered but every provider operation awaiting the call hangs.
+        return true;
       }),
       onPlayerJoin((player) => {
         const view = playerView(player);

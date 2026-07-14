@@ -70,6 +70,8 @@ participant, disconnect, and RPC APIs. RPC callbacks supply the Playroom player
 that sent a message; the adapter maps that trusted SDK identity to a reserved
 provider participant and ignores identity fields inside action payloads. Only
 messages from the original host SDK identity are accepted as authoritative.
+Every registered RPC handler returns an acknowledgement because Playroom keeps
+the sender's `RPC.call` promise pending when a handler returns `undefined`.
 Playroom's automatic host transfer is intentionally ignored: host departure
 closes the provider lobby.
 
