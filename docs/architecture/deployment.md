@@ -8,10 +8,9 @@ Deployment must not contain Playroom credentials. AI/local builds and automated 
 
 ## Current release state
 
-As of 2026-07-13, the workflow and repository-page build are implemented and
-verified locally, but no successful public Pages URL has been recorded. R1 and
-R13 therefore remain open. The remaining deployment action is to select GitHub
-Actions as the repository's Pages source, push `main`, confirm the `Deploy
-GitHub Pages` workflow succeeds, and record its `page_url` in the release
-documentation. This repository checkout has no configured remote from which an
-owner or public URL can be inferred safely.
+A static version with multiplayer disabled was successfully deployed through
+the GitHub Actions Pages workflow before the multiplayer-enabled release was
+staged. That deployment satisfies R1 and R13. The remaining release action is
+to deploy and smoke-test the staged `VITE_PLAYROOM_GAME_ID` configuration on
+the public page; this is multiplayer release verification rather than a blocker
+for the static application or repository-page deployment requirements.

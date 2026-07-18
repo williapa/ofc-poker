@@ -609,3 +609,41 @@ Prompt 21 mobile layout acceptance criteria.
 
 No product requirement is newly marked complete: this is final Prompt 21 visual
 polish on top of the already-covered mobile layout contracts.
+
+## 22. Configure Playroom for GitHub Pages builds
+
+Status: complete (2026-07-17)
+
+Requirement references: R1 static browser application, R2 shareable multiplayer
+lobby, and R13 GitHub Pages deployment.
+
+- Passed the public `VITE_PLAYROOM_GAME_ID` repository variable into both the
+  validation and deployment production builds.
+- Kept the repository-page base path explicit in each build environment and
+  ensured the validated build uses the same Playroom configuration as the
+  uploaded Pages artifact.
+- Recorded the earlier successful multiplayer-disabled GitHub Pages deployment
+  as acceptance evidence for the static application and repository-page
+  deployment requirements.
+
+R1 and R13 are complete based on the earlier successful public Pages
+deployment. The staged multiplayer-enabled version still requires a production
+smoke test.
+
+## 22.1. Isolate the GitHub-only multiplayer E2E exclusion
+
+Status: complete (2026-07-17)
+
+Requirement references: R11 browser tests and R13 GitHub Actions deployment
+gate.
+
+- Added an explicit `SKIP_MULTIPLAYER_JOURNEY_E2E` Playwright configuration
+  switch that excludes only `multiplayer-journey.spec.ts`.
+- Enabled the switch only for the GitHub Pages validation step, leaving the
+  ordinary local `npm run test:e2e` command unchanged and complete.
+- Documented the difference between the deployment gate and the local browser
+  suite.
+
+R11 remains complete based on the full local suite. The GitHub Pages gate now
+runs the remaining browser coverage without the environment-sensitive
+multiplayer journey.

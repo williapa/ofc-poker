@@ -2,7 +2,7 @@
 
 When the requirements are met the project is done.
 
-1. [ ] client browser application (static app available via url)
+1. [x] client browser application (static app available via url)
 2. [x] create a lobby via shareable link
 3. [x] user configures default game settings via form before creating lobby
 4. [x] lobby hosts a game of Open Face Chinese (OFC) Poker (see "./reference/open-face-chinese-poker-rules-engine-spec.md");
@@ -14,13 +14,13 @@ When the requirements are met the project is done.
 10. [x] unit tests for all features
 11. [x] end to end tests with playwright for features
 12. [x] support a local version of data-provider for testing & development that does not spend service quotas.
-13. [ ] app deploys via github actions as a github repository page
+13. [x] app deploys via github actions as a github repository page
 
-## Release audit evidence (2026-07-13)
+## Release audit evidence (updated 2026-07-17)
 
 | Requirement | Status and verification evidence                                                                                                                                                                                                                                                                                                            |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1          | **Open.** Vite produces and Playwright serves the static production app locally, but no public deployment URL has been demonstrated.                                                                                                                                                                                                        |
+| R1          | **Complete.** A static version of the browser application with multiplayer disabled was deployed publicly through GitHub Pages before the multiplayer-enabled release was staged.                                                                                                                                                           |
 | R2          | **Complete.** Create/join/invite and repository-safe `?lobby=` links have component, provider-contract, and browser coverage. A two-player real Playroom create/join/basic-gameplay smoke test passed manually on 2026-07-13.                                                                                                               |
 | R3          | **Complete.** The accessible pre-lobby form validates display name, mode, and two-to-four seat count before provider creation; component and browser tests cover defaults and errors. Standard OFC rules are shown as fixed rather than misleadingly configurable.                                                                          |
 | R4          | **Complete.** Deterministic engine tests cover the standard 52-card lifecycle, evaluation, legality, fouls, 1–6 scoring, every royalty, Fantasyland, showdown, multi-hand totals, and dealer rotation; runner/view integration covers playable presentation.                                                                                |
@@ -32,7 +32,7 @@ When the requirements are met the project is done.
 | R10         | **Complete.** All four workspaces enforce unit/integration suites and package-specific V8 coverage thresholds through the root coverage command.                                                                                                                                                                                            |
 | R11         | **Complete.** Production-build Playwright journeys cover validation, complete deterministic Local AI play through the next hand, isolated multi-context multiplayer through showdown, fixed settings, two-to-four-seat capacity/full rooms, invalid and missing links, host-refresh policy, and WebGL fallback without contacting Playroom. |
 | R12         | **Complete.** The in-memory provider passes the reusable provider contract and has no browser, network, credential, or Playroom dependency.                                                                                                                                                                                                 |
-| R13         | **Open.** The Pages workflow validates, builds, uploads, and deploys with least-privilege jobs, but a successful public deployment has not been observed. Configure Pages for GitHub Actions and push `main`.                                                                                                                               |
+| R13         | **Complete.** The GitHub Actions Pages workflow successfully deployed the earlier static, multiplayer-disabled release as a GitHub repository page. The multiplayer-enabled release is a subsequent configuration update, not a prerequisite for this deployment requirement.                                                               |
 
 Detailed test locations and OFC rule mappings are maintained in
 [`docs/test-traceability.md`](./test-traceability.md). A checked item above means

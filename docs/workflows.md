@@ -121,6 +121,12 @@ npx playwright install chromium
 VITE_BASE_PATH=ofcpoker npm run test:e2e
 ```
 
+The GitHub Pages validation job sets
+`SKIP_MULTIPLAYER_JOURNEY_E2E=true`, which excludes only
+`tests/e2e/multiplayer-journey.spec.ts` from that deployment gate. The ordinary
+local `npm run test:e2e` command does not set the flag and continues to run the
+complete browser suite, including the multiplayer journey.
+
 Supported URLs are the repository index and query-based join links such as
 `/ofcpoker/?lobby=<id>`. Both resolve to `index.html`, so direct navigation and
 refresh need no `404.html` fallback. E2E verifies home, join, and refreshed join

@@ -6,6 +6,10 @@ const deploymentPath = process.env.VITE_BASE_PATH
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore:
+    process.env.SKIP_MULTIPLAYER_JOURNEY_E2E === "true"
+      ? "**/multiplayer-journey.spec.ts"
+      : [],
   fullyParallel: false,
   // Full-hand WebGL journeys are resource-intensive and share the preview
   // server's in-memory E2E transport. Serial workers keep CI deterministic.

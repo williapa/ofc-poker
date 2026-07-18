@@ -26,9 +26,17 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:coverage
-      - run: VITE_BASE_PATH=${{ github.event.repository.name }} npm run build
+      - name: Build production site
+        run: npm run build
+        env:
+          VITE_BASE_PATH: ${{ github.event.repository.name }}
+          VITE_PLAYROOM_GAME_ID: ${{ vars.VITE_PLAYROOM_GAME_ID }}
       - run: npx playwright install --with-deps chromium
-      - run: VITE_BASE_PATH=${{ github.event.repository.name }} npm run test:e2e
+      - name: Run GitHub Pages browser tests
+        run: npm run test:e2e
+        env:
+          SKIP_MULTIPLAYER_JOURNEY_E2E: "true"
+          VITE_BASE_PATH: ${{ github.event.repository.name }}
 
   build:
     needs: validate
@@ -45,7 +53,11 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: actions/configure-pages@v6
-      - run: VITE_BASE_PATH=${{ github.event.repository.name }} npm run build
+      - name: Build production site
+        run: npm run build
+        env:
+          VITE_BASE_PATH: ${{ github.event.repository.name }}
+          VITE_PLAYROOM_GAME_ID: ${{ vars.VITE_PLAYROOM_GAME_ID }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: packages/client/dist

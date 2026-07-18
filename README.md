@@ -134,9 +134,10 @@ four-player suites use local/fake transports and consume no Playroom quota.
 
 Known limitations:
 
-- The public GitHub Pages URL has not yet been demonstrated. Configure Pages for
-  GitHub Actions, push `main`, and record the successful workflow URL before
-  closing requirements R1 and R13.
+- A multiplayer-disabled version has been successfully deployed through GitHub
+  Pages, satisfying the static application and repository-page deployment
+  requirements. The Playroom-enabled production configuration is staged but
+  has not yet been verified on the public page.
 - Browser E2E covers the production home, routing, validation, and local
   placement path. Complete cross-browser journeys remain open under R11 even
   though the domain and component layers have deterministic coverage.
