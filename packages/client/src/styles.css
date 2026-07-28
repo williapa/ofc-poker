@@ -139,10 +139,6 @@ h2 {
   gap: 0.32rem;
 }
 
-.board-motif-row-front {
-  justify-content: left;
-}
-
 .board-motif span {
   width: 1.75rem;
   height: 2.4rem;
@@ -384,6 +380,46 @@ select {
   text-decoration: none;
 }
 
+.tutorial-home-link {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #345149;
+  border-radius: 0.3rem;
+  color: #e9e4d8;
+  background: rgb(12 36 30 / 58%);
+  text-decoration: none;
+}
+
+.tutorial-home-link:hover {
+  border-color: #c49b4e;
+  background: rgb(196 155 78 / 8%);
+}
+
+.tutorial-home-link > span:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.tutorial-home-link strong {
+  font-size: 0.9rem;
+}
+
+.tutorial-home-link small {
+  color: #80978f;
+  font-size: 0.75rem;
+}
+
+.tutorial-home-link > span:last-child {
+  color: #e7bd68;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .lobby-card {
   width: min(100%, 52rem);
 }
@@ -493,6 +529,811 @@ select {
 
   .game-attention-action {
     animation: none !important;
+  }
+}
+
+/* Guided tutorial. It shares the table palette and row language without
+   starting WebGL, a provider, or a game runner. */
+.tutorial-shell {
+  display: grid;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background:
+    radial-gradient(circle at 78% 42%, rgb(35 104 81 / 28%), transparent 34rem),
+    #071713;
+}
+
+.tutorial-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: max(1rem, env(safe-area-inset-top)) clamp(1rem, 3vw, 2.75rem) 1rem;
+  border-bottom: 1px solid rgb(231 189 104 / 17%);
+  background: rgb(5 20 16 / 72%);
+}
+
+.tutorial-exit {
+  min-height: 2.75rem;
+  padding: 0.75rem;
+  color: #c8d2cd;
+  font-size: 0.8rem;
+  text-underline-offset: 0.25rem;
+}
+
+.tutorial-stage {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-columns: minmax(17rem, 0.68fr) minmax(30rem, 1.32fr);
+}
+
+.tutorial-copy {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  padding: clamp(1.4rem, 4vw, 4.5rem);
+  border-right: 1px solid rgb(231 189 104 / 14%);
+  background: rgb(4 16 13 / 38%);
+}
+
+.tutorial-copy h1 {
+  max-width: 13ch;
+  font-size: clamp(2.5rem, 4.8vw, 5.25rem);
+  line-height: 0.98;
+}
+
+.tutorial-copy
+  > p:not(
+    .eyebrow,
+    .tutorial-lock-note,
+    .tutorial-sequence,
+    .tutorial-warning,
+    .tutorial-stay-note,
+    .tutorial-royalty-note
+  ) {
+  max-width: 37rem;
+  margin: 1.35rem 0 0;
+  color: #a9beb6;
+  font-size: clamp(0.92rem, 1.4vw, 1.08rem);
+  line-height: 1.7;
+}
+
+.tutorial-visual {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: clamp(1rem, 3vw, 3rem);
+  place-items: center;
+}
+
+.tutorial-board {
+  display: grid;
+  width: min(100%, 58rem);
+  min-width: 0;
+  gap: 0.85rem;
+}
+
+.tutorial-felt {
+  display: grid;
+  min-width: 0;
+  gap: clamp(0.45rem, 1.1vh, 0.85rem);
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  border: 1px solid rgb(231 189 104 / 22%);
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(circle at center, rgb(32 104 80 / 20%), transparent 70%),
+    #0b2c23;
+  box-shadow:
+    inset 0 0 0 0.35rem rgb(3 17 13 / 32%),
+    0 1.6rem 5rem rgb(0 0 0 / 24%);
+}
+
+.tutorial-row {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: clamp(0.55rem, 1.8vw, 1.3rem);
+  grid-template-columns: 5.4rem minmax(0, 1fr);
+  padding: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  transition:
+    border-color 160ms,
+    background 160ms;
+}
+
+.tutorial-row[data-highlighted="true"] {
+  border-color: rgb(231 189 104 / 30%);
+  background: rgb(231 189 104 / 6%);
+}
+
+.tutorial-row-label {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.tutorial-row-label strong {
+  color: #eee9dc;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tutorial-row-label span {
+  color: #769189;
+  font-size: 0.66rem;
+}
+
+.tutorial-card-row,
+.tutorial-pending > div {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+  gap: clamp(0.25rem, 0.7vw, 0.55rem);
+}
+
+.tutorial-card,
+.tutorial-card-slot {
+  display: grid;
+  width: clamp(2.7rem, 5.2vw, 4.35rem);
+  aspect-ratio: 0.71;
+  flex: 0 1 4.35rem;
+  border-radius: clamp(0.25rem, 0.5vw, 0.42rem);
+}
+
+.tutorial-card {
+  align-content: start;
+  justify-content: start;
+  gap: 0;
+  padding: clamp(0.25rem, 0.55vw, 0.48rem);
+  border: 1px solid #d9d2c3;
+  color: #17221e;
+  background: #f1ecdf;
+  box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 20%);
+  line-height: 1;
+}
+
+.tutorial-card[data-color="red"] {
+  color: #aa342d;
+}
+
+.tutorial-card strong {
+  font-family: Georgia, serif;
+  font-size: clamp(0.95rem, 2vw, 1.45rem);
+}
+
+.tutorial-card > span {
+  font-size: clamp(0.85rem, 1.8vw, 1.3rem);
+}
+
+.tutorial-card-slot {
+  border: 1px dashed rgb(219 231 225 / 20%);
+  background: rgb(3 20 15 / 27%);
+}
+
+.tutorial-pending {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border: 1px solid #29463e;
+  border-radius: 0.5rem;
+  background: rgb(5 24 19 / 72%);
+}
+
+.tutorial-pending > span {
+  color: #b9c8c2;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tutorial-pending .tutorial-card {
+  width: clamp(2.4rem, 4.3vw, 3.45rem);
+  flex-basis: 3.45rem;
+}
+
+.tutorial-lock-note,
+.tutorial-warning,
+.tutorial-sequence,
+.tutorial-royalty-note {
+  width: fit-content;
+  margin: 1.35rem 0 0;
+  padding: 0.7rem 0.85rem;
+  border-left: 2px solid #d7ad5b;
+  color: #ead39f;
+  background: rgb(215 173 91 / 8%);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.tutorial-warning {
+  border-left-color: #d67e6d;
+  color: #efb8ad;
+  background: rgb(214 126 109 / 8%);
+}
+
+.tutorial-stay-note {
+  max-width: 34rem;
+  margin-top: 1.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(231 189 104 / 32%);
+  border-radius: 0.4rem;
+  color: #dce5e0;
+  background: rgb(215 173 91 / 7%);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.tutorial-stay-note strong {
+  color: #f0d89f;
+}
+
+.tutorial-stay-note ul {
+  display: grid;
+  gap: 0.28rem;
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.tutorial-result-line {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1.35rem;
+  color: #d6dfdb;
+  font-size: 0.78rem;
+}
+
+.tutorial-result-line span::before {
+  margin-right: 0.45rem;
+  color: #d7ad5b;
+  content: "◆";
+  font-size: 0.55rem;
+}
+
+.tutorial-score {
+  display: grid;
+  max-width: 34rem;
+  margin: 1.35rem 0 0;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.tutorial-score div {
+  padding: 0 0.65rem;
+  border-left: 1px solid #345149;
+}
+
+.tutorial-score div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.tutorial-score dt {
+  color: #829a91;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+}
+
+.tutorial-score dd {
+  margin: 0.2rem 0 0;
+  color: #f0cf86;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.tutorial-showdown-grid {
+  display: grid;
+  width: 100%;
+  gap: clamp(0.8rem, 2vw, 1.4rem);
+  grid-template-columns: 1fr 1fr;
+}
+
+.tutorial-showdown-grid > div {
+  min-width: 0;
+}
+
+.tutorial-showdown-grid > div > p {
+  margin: 0 0 0.4rem;
+  color: #e7bd68;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tutorial-royalty-tables {
+  display: grid;
+  width: min(100%, 52rem);
+  min-width: 0;
+  align-items: start;
+  gap: 0.9rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.tutorial-front-royalties {
+  grid-column: 1 / -1;
+}
+
+.tutorial-royalty-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #36534a;
+  color: #d9e2de;
+  background: rgb(5 25 20 / 86%);
+  font-size: clamp(0.66rem, 1vw, 0.78rem);
+}
+
+.tutorial-royalty-table caption {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #36534a;
+  border-bottom: 0;
+  color: #f0d89f;
+  background: #0d3127;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.tutorial-royalty-table th,
+.tutorial-royalty-table td {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid #29473e;
+  text-align: left;
+}
+
+.tutorial-royalty-table thead th {
+  color: #829a91;
+  background: #08251d;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tutorial-royalty-table tbody th {
+  color: #e4e8e4;
+  font-weight: 500;
+}
+
+.tutorial-royalty-table td {
+  width: 4.4rem;
+  color: #efc970;
+  font-weight: 700;
+  text-align: right;
+}
+
+.tutorial-complete-panel {
+  display: grid;
+  width: min(100%, 32rem);
+  gap: 0.85rem;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border: 1px solid rgb(231 189 104 / 28%);
+  border-radius: 0.7rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgb(215 173 91 / 14%), transparent 55%),
+    rgb(5 25 20 / 86%);
+  box-shadow: 0 1.8rem 5rem rgb(0 0 0 / 25%);
+  text-align: center;
+}
+
+.tutorial-complete-mark {
+  display: grid;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: 0 auto 0.35rem;
+  place-items: center;
+  border: 1px solid #d7ad5b;
+  border-radius: 50%;
+  color: #edca7e;
+  font-size: 2rem;
+}
+
+.tutorial-complete-panel p {
+  margin: 0 0 0.75rem;
+  color: #b7c8c1;
+}
+
+.tutorial-complete-button {
+  display: flex;
+  width: 100%;
+  min-height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.2rem;
+  border: 1px solid #d3a855;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tutorial-complete-start {
+  color: #102119;
+  background: #d7ad5b;
+}
+
+.tutorial-complete-start:hover {
+  background: #e3bd70;
+}
+
+.tutorial-complete-redo {
+  color: #e8e3d7;
+  background: transparent;
+}
+
+.tutorial-complete-redo:hover {
+  background: rgb(215 173 91 / 8%);
+}
+
+.tutorial-board-compact .tutorial-felt {
+  gap: 0.25rem;
+  padding: 0.65rem;
+  border-radius: 0.8rem;
+}
+
+.tutorial-board-compact .tutorial-row {
+  gap: 0.35rem;
+  grid-template-columns: 3.6rem minmax(0, 1fr);
+  padding: 0.15rem;
+}
+
+.tutorial-board-compact .tutorial-row-label span {
+  display: none;
+}
+
+.tutorial-board-compact .tutorial-card,
+.tutorial-board-compact .tutorial-card-slot {
+  width: clamp(1.85rem, 3vw, 2.8rem);
+  flex-basis: 2.8rem;
+}
+
+.tutorial-board-compact .tutorial-card {
+  padding: 0.25rem;
+}
+
+.tutorial-board-compact .tutorial-card strong {
+  font-size: clamp(0.78rem, 1.25vw, 1rem);
+}
+
+.tutorial-board-compact .tutorial-card > span {
+  font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+}
+
+.tutorial-navigation {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem clamp(1rem, 3vw, 2.75rem)
+    max(0.8rem, env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(231 189 104 / 17%);
+  grid-template-columns: minmax(7rem, 1fr) auto minmax(7rem, 1fr);
+  background: #061914f2;
+}
+
+.tutorial-nav-button {
+  display: flex;
+  width: fit-content;
+  min-width: 7rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #4a645c;
+  border-radius: 0.25rem;
+  color: #e6e1d5;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tutorial-nav-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.tutorial-next {
+  justify-self: end;
+  border-color: #d3a855;
+  color: #102119;
+  background: #d7ad5b;
+}
+
+.tutorial-navigation-spacer {
+  min-width: 7rem;
+}
+
+.tutorial-next:hover {
+  background: #e3bd70;
+}
+
+.tutorial-progress {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+}
+
+.tutorial-progress p {
+  margin: 0;
+  color: #91a69f;
+  font-size: 0.68rem;
+}
+
+.tutorial-progress ol {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tutorial-progress button {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #3c564e;
+  border-radius: 50%;
+  color: #819890;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.62rem;
+}
+
+.tutorial-progress button[aria-current="step"] {
+  border-color: #d7ad5b;
+  color: #13231c;
+  background: #d7ad5b;
+}
+
+@media (max-width: 850px) {
+  .tutorial-stage {
+    overflow-y: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-copy {
+    overflow: visible;
+    padding: 1.5rem clamp(1rem, 5vw, 2rem) 1rem;
+    border-right: 0;
+  }
+
+  .tutorial-copy h1 {
+    max-width: 18ch;
+    font-size: clamp(2.2rem, 9vw, 4rem);
+  }
+
+  .tutorial-visual {
+    min-height: auto;
+    overflow: visible;
+    padding: 0.5rem clamp(0.75rem, 4vw, 1.5rem) 1.25rem;
+  }
+
+  .tutorial-showdown-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-royalty-tables {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-front-royalties {
+    grid-column: auto;
+  }
+
+  .tutorial-board-compact .tutorial-card,
+  .tutorial-board-compact .tutorial-card-slot {
+    width: clamp(2rem, 9vw, 3.1rem);
+    flex-basis: 3.1rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .tutorial-header {
+    padding-inline: 0.8rem;
+  }
+
+  .tutorial-row {
+    gap: 0.3rem;
+    grid-template-columns: 3.7rem minmax(0, 1fr);
+    padding-inline: 0.15rem;
+  }
+
+  .tutorial-row-label strong {
+    font-size: 0.68rem;
+  }
+
+  .tutorial-row-label span {
+    font-size: 0.56rem;
+  }
+
+  .tutorial-card,
+  .tutorial-card-slot {
+    width: clamp(2.15rem, 11vw, 3rem);
+    flex-basis: 3rem;
+  }
+
+  .tutorial-pending .tutorial-card {
+    width: clamp(2rem, 10vw, 2.75rem);
+    flex-basis: 2.75rem;
+  }
+
+  .tutorial-navigation {
+    gap: 0.45rem;
+    padding-inline: 0.7rem;
+    grid-template-areas:
+      "back next"
+      "progress progress";
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tutorial-back {
+    grid-area: back;
+  }
+
+  .tutorial-next,
+  .tutorial-navigation-spacer {
+    grid-area: next;
+    justify-self: end;
+  }
+
+  .tutorial-nav-button {
+    min-width: 3.25rem;
+    min-height: 2.75rem;
+    padding-inline: 0.55rem;
+  }
+
+  .tutorial-progress {
+    width: 100%;
+    grid-area: progress;
+  }
+
+  .tutorial-progress ol {
+    gap: 0.2rem;
+  }
+
+  .tutorial-progress button {
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: 0.55rem;
+  }
+
+  .tutorial-score {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem 0;
+  }
+
+  .tutorial-score div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .tutorial-header {
+    padding-block: 0.45rem;
+  }
+
+  .tutorial-stage {
+    grid-template-columns: minmax(17rem, 0.85fr) minmax(26rem, 1.15fr);
+    overflow: hidden;
+  }
+
+  .tutorial-copy {
+    overflow-y: auto;
+    padding: 0.8rem 1.2rem;
+    border-right: 1px solid rgb(231 189 104 / 14%);
+  }
+
+  .tutorial-copy .eyebrow {
+    margin-bottom: 0.4rem;
+  }
+
+  .tutorial-copy h1 {
+    font-size: clamp(1.8rem, 4.5vw, 2.7rem);
+  }
+
+  .tutorial-copy
+    > p:not(
+      .eyebrow,
+      .tutorial-lock-note,
+      .tutorial-sequence,
+      .tutorial-warning,
+      .tutorial-stay-note,
+      .tutorial-royalty-note
+    ) {
+    margin-top: 0.65rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .tutorial-visual {
+    min-height: 0;
+    overflow: auto;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .tutorial-felt {
+    gap: 0.2rem;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .tutorial-row {
+    gap: 0.3rem;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    padding: 0.12rem;
+  }
+
+  .tutorial-card,
+  .tutorial-card-slot {
+    width: clamp(1.65rem, 4.5vw, 2.3rem);
+    flex-basis: 2.3rem;
+  }
+
+  .tutorial-card {
+    padding: 0.2rem;
+  }
+
+  .tutorial-card strong,
+  .tutorial-card > span {
+    font-size: 0.72rem;
+  }
+
+  .tutorial-pending {
+    gap: 0.25rem;
+    padding: 0.35rem;
+  }
+
+  .tutorial-pending .tutorial-card {
+    width: clamp(1.55rem, 4vw, 2rem);
+    flex-basis: 2rem;
+  }
+
+  .tutorial-lock-note,
+  .tutorial-warning,
+  .tutorial-stay-note,
+  .tutorial-sequence,
+  .tutorial-royalty-note,
+  .tutorial-result-line,
+  .tutorial-score {
+    margin-top: 0.65rem;
+  }
+
+  .tutorial-navigation {
+    padding-block: 0.4rem;
+  }
+
+  .tutorial-showdown-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tutorial-royalty-tables {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tutorial-front-royalties {
+    grid-column: 1 / -1;
+  }
+
+  .tutorial-royalty-table th,
+  .tutorial-royalty-table td {
+    padding-block: 0.18rem;
   }
 }
 

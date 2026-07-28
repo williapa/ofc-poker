@@ -71,3 +71,134 @@ test("loads home and join routes from the configured repository path", async ({
     page.getByRole("heading", { name: "Join the table" }),
   ).toBeVisible();
 });
+
+test("opens, refreshes, and navigates the guided tutorial beneath the repository path", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await page.getByRole("link", { name: /Learn how to play/ }).click();
+  await expect(page).toHaveURL(/\?view=tutorial$/);
+  await expect(
+    page.getByRole("heading", { name: "Build three poker hands." }),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText("Step 1 of 10")).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("heading", { name: "Start with five cards." }),
+  ).toBeFocused();
+
+  await page
+    .getByRole("button", {
+      name: "Go to step 7: Compare matching rows.",
+    })
+    .click();
+  await expect(page.getByText("+7", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "Go to step 8: Queens or better in front earn Fantasyland.",
+    })
+    .click();
+  await expect(
+    page.getByText("A full house or better in middle, or"),
+  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "Go to step 9: Know your royalties.",
+    })
+    .click();
+  await expect(page.getByRole("table")).toHaveCount(3);
+  await page
+    .getByRole("button", {
+      name: "Go to step 10: Congratulations!",
+    })
+    .click();
+  await expect(page.getByText(/You finished the tutorial/)).toBeVisible();
+  await page.getByRole("button", { name: /Redo tutorial/ }).click();
+  await expect(
+    page.getByRole("heading", { name: "Build three poker hands." }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", {
+      name: "Go to step 10: Congratulations!",
+    })
+    .click();
+  await page.getByRole("link", { name: /Start playing/ }).click();
+  await expect(page).not.toHaveURL(/view=tutorial/);
+  await expect(
+    page.getByRole("heading", { name: "Build it in the open." }),
+  ).toBeVisible();
+
+  await page.goBack();
+  await expect(
+    page.getByRole("heading", { name: "Build three poker hands." }),
+  ).toBeVisible();
+});
+
+for (const viewport of [
+  { name: "mobile portrait", width: 393, height: 852 },
+  { name: "mobile landscape", width: 852, height: 393 },
+] as const) {
+  test(`keeps tutorial navigation reachable in ${viewport.name}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("./?view=tutorial");
+    const shell = page.locator(".tutorial-shell");
+    const navigation = page.locator(".tutorial-navigation");
+    await expect(shell).toBeVisible();
+    await expect(navigation).toBeVisible();
+    await page
+      .getByRole("button", { name: "Go to step 9: Know your royalties." })
+      .click();
+    await expect(page.getByRole("table")).toHaveCount(3);
+
+    const geometry = await page.evaluate(() => {
+      const shell = document.querySelector(".tutorial-shell");
+      const navigation = document.querySelector(".tutorial-navigation");
+      if (
+        !(shell instanceof HTMLElement) ||
+        !(navigation instanceof HTMLElement)
+      )
+        throw new Error("Missing tutorial layout");
+      const shellBox = shell.getBoundingClientRect();
+      const navigationBox = navigation.getBoundingClientRect();
+      return {
+        shell: {
+          left: shellBox.left,
+          right: shellBox.right,
+          top: shellBox.top,
+          bottom: shellBox.bottom,
+        },
+        navigation: {
+          left: navigationBox.left,
+          right: navigationBox.right,
+          top: navigationBox.top,
+          bottom: navigationBox.bottom,
+        },
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        horizontalOverflow:
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth + 1,
+      };
+    });
+
+    expect(geometry.shell.left).toBeGreaterThanOrEqual(-1);
+    expect(geometry.shell.top).toBeGreaterThanOrEqual(-1);
+    expect(geometry.shell.right).toBeLessThanOrEqual(
+      geometry.viewport.width + 1,
+    );
+    expect(geometry.shell.bottom).toBeLessThanOrEqual(
+      geometry.viewport.height + 1,
+    );
+    expect(geometry.navigation.bottom).toBeLessThanOrEqual(
+      geometry.viewport.height + 1,
+    );
+    expect(geometry.horizontalOverflow).toBe(false);
+    await expect(page.getByRole("button", { name: /Next/ })).toBeVisible();
+  });
+}

@@ -82,6 +82,58 @@ test("has no critical accessibility violations on the home screen", async () => 
   await expectNoCriticalAccessibilityViolations(container);
 });
 
+test("opens the direct tutorial route without initializing a provider", () => {
+  const factory = factoryFor(localProvider());
+  render(
+    <App
+      providerFactory={factory}
+      initialUrl="https://example.test/ofcpoker/?view=tutorial"
+    />,
+  );
+
+  expect(
+    screen.getByRole("heading", { name: "Build three poker hands." }),
+  ).toBeVisible();
+  expect(screen.getByText("Step 1 of 10")).toBeVisible();
+  expect(factory.create).not.toHaveBeenCalled();
+});
+
+test("opens the tutorial from home and returns without initializing a provider", () => {
+  const factory = factoryFor(localProvider());
+  render(
+    <App
+      providerFactory={factory}
+      initialUrl="https://example.test/ofcpoker/"
+    />,
+  );
+
+  fireEvent.click(screen.getByRole("link", { name: /Learn how to play/ }));
+  expect(
+    screen.getByRole("heading", { name: "Build three poker hands." }),
+  ).toBeVisible();
+  fireEvent.click(screen.getByRole("link", { name: "Exit tutorial" }));
+  expect(
+    screen.getByRole("heading", { name: "Build it in the open." }),
+  ).toBeVisible();
+  expect(factory.create).not.toHaveBeenCalled();
+});
+
+test("rejects a conflicting tutorial and lobby route before initializing a provider", () => {
+  const factory = factoryFor(localProvider());
+  render(
+    <App
+      providerFactory={factory}
+      initialUrl="https://example.test/ofcpoker/?view=tutorial&lobby=room-1"
+    />,
+  );
+
+  expect(
+    screen.getByRole("heading", { name: "We can’t open that page." }),
+  ).toBeVisible();
+  expect(screen.getByRole("alert")).toHaveTextContent("conflicting");
+  expect(factory.create).not.toHaveBeenCalled();
+});
+
 test("validates the display name inline and moves focus to provider errors", async () => {
   const factory: ProviderFactory = {
     create: vi.fn(async () => {

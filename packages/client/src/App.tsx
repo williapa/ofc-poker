@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { DataProviderError } from "@ofcpoker/data-provider";
+import { Brand } from "./Brand";
 import type { OfcLobbyConnection } from "./contracts/game-runner";
 import { GameScreen } from "./GameScreen";
 import {
   createHomeUrl,
   createJoinUrl,
   createLobbySettings,
+  createTutorialUrl,
   DEFAULT_LOBBY_FORM,
   DISPLAY_NAME_MAX_LENGTH,
   parseAppRoute,
@@ -25,6 +27,7 @@ import {
   createMemoryLobbySessionStore,
   type LobbySessionStore,
 } from "./reconnect";
+import { TutorialScreen } from "./tutorial/TutorialScreen";
 
 export interface AppProps {
   readonly providerFactory?: ProviderFactory;
@@ -62,17 +65,6 @@ function readableError(error: unknown): string {
     : "Something went wrong. Please try again.";
 }
 
-function Brand() {
-  return (
-    <div className="brand" aria-label="OFC">
-      <span className="brand-mark" aria-hidden="true">
-        ♢
-      </span>
-      <span>OFC Poker </span>
-    </div>
-  );
-}
-
 function FixedRules() {
   return (
     <fieldset className="fixed-rules" aria-describedby="fixed-rules-note">
@@ -99,10 +91,18 @@ function FixedRules() {
 interface HomeScreenProps {
   readonly busy: boolean;
   readonly error: string | undefined;
+  readonly tutorialUrl: string;
   readonly onCreate: (values: LobbyFormValues) => void;
+  readonly onTutorial: () => void;
 }
 
-function HomeScreen({ busy, error, onCreate }: HomeScreenProps) {
+function HomeScreen({
+  busy,
+  error,
+  tutorialUrl,
+  onCreate,
+  onTutorial,
+}: HomeScreenProps) {
   const [values, setValues] = useState(DEFAULT_LOBBY_FORM);
   const [nameError, setNameError] = useState<string>();
   const errorRef = useRef<HTMLDivElement>(null);
@@ -254,6 +254,22 @@ function HomeScreen({ busy, error, onCreate }: HomeScreenProps) {
 
           <FixedRules />
 
+          <a
+            className="tutorial-home-link"
+            href={tutorialUrl}
+            aria-label="Learn how to play OFC"
+            onClick={(event) => {
+              event.preventDefault();
+              onTutorial();
+            }}
+          >
+            <span>
+              <strong>New to OFC?</strong>
+              <small>Follow one hand from deal to Fantasyland.</small>
+            </span>
+            <span aria-hidden="true">Learn how to play →</span>
+          </a>
+
           <button className="primary-button" type="submit" disabled={busy}>
             {busy ? "Creating table…" : "Create table"}
             <span aria-hidden="true">→</span>
@@ -358,12 +374,14 @@ function JoinScreen({
   );
 }
 
-function InvalidJoinScreen({
+function InvalidRouteScreen({
   message,
+  title,
   homeUrl,
   onHome,
 }: {
   readonly message: string;
+  readonly title: string;
   readonly homeUrl: string;
   readonly onHome: () => void;
 }) {
@@ -372,7 +390,7 @@ function InvalidJoinScreen({
       <section className="join-card" aria-labelledby="invalid-title">
         <Brand />
         <p className="eyebrow">Link problem</p>
-        <h1 id="invalid-title">We can’t find that table.</h1>
+        <h1 id="invalid-title">{title}</h1>
         <div className="error-banner" role="alert">
           {message}
         </div>
@@ -422,6 +440,16 @@ export function App({
   const [error, setError] = useState<string>();
   const reconnectAttempted = useRef(false);
 
+  useEffect(() => {
+    if (initialUrl) return;
+    function syncRoute() {
+      setError(undefined);
+      setRoute(parseAppRoute(window.location.href));
+    }
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, [initialUrl]);
+
   useEffect(
     () => () => {
       void (async () => {
@@ -447,6 +475,14 @@ export function App({
     setError(undefined);
     setRoute({ page: "home" });
     if (!initialUrl) window.history.pushState({}, "", createHomeUrl(baseUrl));
+  }
+
+  function navigateTutorial() {
+    setError(undefined);
+    setRoute({ page: "tutorial" });
+    if (!initialUrl) {
+      window.history.pushState({}, "", createTutorialUrl(baseUrl));
+    }
   }
 
   async function createLobby(values: LobbyFormValues) {
@@ -582,8 +618,19 @@ export function App({
   }
   if (route.page === "invalid-join") {
     return (
-      <InvalidJoinScreen
+      <InvalidRouteScreen
         message={route.message}
+        title="We can’t find that table."
+        homeUrl={createHomeUrl(baseUrl)}
+        onHome={navigateHome}
+      />
+    );
+  }
+  if (route.page === "invalid-route") {
+    return (
+      <InvalidRouteScreen
+        message={route.message}
+        title="We can’t open that page."
         homeUrl={createHomeUrl(baseUrl)}
         onHome={navigateHome}
       />
@@ -601,11 +648,18 @@ export function App({
       />
     );
   }
+  if (route.page === "tutorial") {
+    return (
+      <TutorialScreen homeUrl={createHomeUrl(baseUrl)} onHome={navigateHome} />
+    );
+  }
   return (
     <HomeScreen
       busy={busy}
       error={error}
+      tutorialUrl={createTutorialUrl(baseUrl)}
       onCreate={(values) => void createLobby(values)}
+      onTutorial={navigateTutorial}
     />
   );
 }

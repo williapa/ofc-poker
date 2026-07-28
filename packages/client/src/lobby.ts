@@ -53,15 +53,31 @@ export function createLobbySettings(
 
 export type AppRoute =
   | { readonly page: "home" }
+  | { readonly page: "tutorial" }
   | { readonly page: "join"; readonly lobbyId: string }
-  | { readonly page: "invalid-join"; readonly message: string };
+  | { readonly page: "invalid-join"; readonly message: string }
+  | { readonly page: "invalid-route"; readonly message: string };
 
 const LOBBY_ID_PATTERN = /^[A-Za-z0-9_-]{1,80}$/;
 
 export function parseAppRoute(url: string | URL): AppRoute {
   const parsed =
     url instanceof URL ? url : new URL(url, "https://local.invalid/");
-  if (!parsed.searchParams.has("lobby")) return { page: "home" };
+  const views = parsed.searchParams.getAll("view");
+  const hasLobby = parsed.searchParams.has("lobby");
+
+  if (views.length > 0) {
+    if (views.length === 1 && views[0] === "tutorial" && !hasLobby) {
+      return { page: "tutorial" };
+    }
+    return {
+      page: "invalid-route",
+      message:
+        "This link contains conflicting or unsupported page information.",
+    };
+  }
+
+  if (!hasLobby) return { page: "home" };
 
   const lobbyIds = parsed.searchParams.getAll("lobby");
   const lobbyId = lobbyIds[0]?.trim() ?? "";
@@ -87,5 +103,13 @@ export function createHomeUrl(baseUrl: string | URL): string {
   const url = new URL(baseUrl);
   url.hash = "";
   url.search = "";
+  return url.toString();
+}
+
+export function createTutorialUrl(baseUrl: string | URL): string {
+  const url = new URL(baseUrl);
+  url.hash = "";
+  url.search = "";
+  url.searchParams.set("view", "tutorial");
   return url.toString();
 }

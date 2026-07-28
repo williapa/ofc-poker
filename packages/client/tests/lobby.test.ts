@@ -3,6 +3,7 @@ import {
   createHomeUrl,
   createJoinUrl,
   createLobbySettings,
+  createTutorialUrl,
   parseAppRoute,
   validateDisplayName,
   validateSeatCount,
@@ -40,12 +41,24 @@ describe("static routing", () => {
     expect(
       parseAppRoute("https://example.test/ofcpoker/?lobby=room_42-abc"),
     ).toEqual({ page: "join", lobbyId: "room_42-abc" });
+    expect(
+      parseAppRoute("https://example.test/ofcpoker/?view=tutorial"),
+    ).toEqual({ page: "tutorial" });
     expect(parseAppRoute("https://example.test/ofcpoker/?lobby=").page).toBe(
       "invalid-join",
     );
     expect(
       parseAppRoute("https://example.test/ofcpoker/?lobby=one&lobby=two").page,
     ).toBe("invalid-join");
+    expect(
+      parseAppRoute("https://example.test/ofcpoker/?view=tutorial&lobby=room-1")
+        .page,
+    ).toBe("invalid-route");
+    expect(
+      parseAppRoute(
+        "https://example.test/ofcpoker/?view=tutorial&view=tutorial",
+      ).page,
+    ).toBe("invalid-route");
   });
 
   test("preserves a repository base path and clears stale query/hash state", () => {
@@ -60,5 +73,10 @@ describe("static routing", () => {
         "https://example.test/ofcpoker/index.html?lobby=room-1#top",
       ),
     ).toBe("https://example.test/ofcpoker/index.html");
+    expect(
+      createTutorialUrl(
+        "https://example.test/ofcpoker/index.html?lobby=room-1#top",
+      ),
+    ).toBe("https://example.test/ofcpoker/index.html?view=tutorial");
   });
 });

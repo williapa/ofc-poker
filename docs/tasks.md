@@ -647,3 +647,35 @@ gate.
 R11 remains complete based on the full local suite. The GitHub Pages gate now
 runs the remaining browser coverage without the environment-sensitive
 multiplayer journey.
+
+## 23. Add a guided tutorial hand
+
+Status: complete (2026-07-27)
+
+Requirement references: R1 static browser application, R4 standard OFC rules,
+R9 unified game presentation, R10 unit/component coverage, R11 browser
+coverage, and R13 repository-page routing.
+
+- Added a direct, repository-page-safe `?view=tutorial` route with explicit
+  tutorial/lobby conflict handling, home entry and exit links, and browser
+  Back/Forward route synchronization.
+- Added a ten-step, read-only slideshow covering the `3 / 5 / 5` board,
+  initial five-card placement, committed-card immutability, eight single-card
+  draws, row ordering, fouls, pairwise scoring, scoops, royalties, and
+  Fantasyland.
+- Added exact front, middle, and back royalty tables, clarified Fantasyland
+  entry and re-entry hand strengths, and finished the flow with dedicated Start
+  playing and Redo tutorial actions.
+- Kept one deterministic example hand through every step and verified its legal
+  board, nine royalties, `+7` scoop result, and Fantasyland entry with the pure
+  game-engine evaluators.
+- Reused the game palette and row language in an accessible DOM card board
+  without initializing WebGL, a provider, the game runner, or AI state.
+- Added button, progress, and Left/Right keyboard navigation with slide-heading
+  focus, live progress text, reduced-motion compatibility, and responsive
+  desktop/mobile portrait/mobile landscape layouts.
+- Added route, fixture, component, accessibility, direct-refresh, browser
+  history, keyboard/progress, and mobile containment coverage.
+
+No existing requirement status changes: this adds instructional UX and
+regression evidence to the already-complete product requirements.

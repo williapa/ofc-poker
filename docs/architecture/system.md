@@ -39,8 +39,15 @@ GitHub Pages cannot rewrite arbitrary paths such as `/ofcpoker/lobby/ABC` to `in
 
 ```text
 https://<owner>.github.io/<repository>/?lobby=<encoded-id>
+https://<owner>.github.io/<repository>/?view=tutorial
 ```
 
 Optional non-sensitive fields may use additional query parameters; reconnect tokens must not. The client parses links with `URL`/`URLSearchParams`, validates the lobby ID, and uses `history.replaceState` only within the same base URL. It does not use path-based routing.
 
 Vite uses relative build assets (`base: "./"`), so the same output works at `/` during local preview and beneath `/<repository>/` on Pages. Creating a share link starts from `document.baseURI` or the current page URL, removes unrelated query/hash state, and sets the encoded `lobby` parameter. Direct opening and refresh therefore request the real repository-page index rather than relying on a server rewrite.
+
+The guided tutorial follows the same policy with the non-sensitive
+`view=tutorial` parameter. Tutorial and lobby parameters are mutually
+exclusive, their URL builders clear unrelated query/hash state, and browser
+Back/Forward navigation reparses the current URL. The tutorial is read-only and
+does not initialize a data provider, game runner, AI player, or WebGL scene.
