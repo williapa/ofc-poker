@@ -690,3 +690,26 @@ coverage, and R13 repository-page routing.
 
 No existing requirement status changes: this adds instructional UX and
 regression evidence to the already-complete product requirements.
+
+## 24. Fit the four-player table to laptop viewports
+
+Status: complete (2026-07-28)
+
+Requirement references: R5 two-to-four-player support, R9 minimal 3D UI, R10
+unit/component coverage, R11 browser coverage, and Prompt 21 responsive layout
+acceptance criteria.
+
+- Added a 1440 x 810 laptop content viewport matching the reported MacBook
+  browser shape to the shared responsive test matrix.
+- Replaced the fixed desktop camera zoom with a bounded fit calculation based
+  on the actual canvas size and the maximum board/hand scene bounds.
+- Reserved a desktop score rail beside the WebGL canvas so player details never
+  cover a side seat's cards.
+- Increased three- and four-player horizontal seat separation and added pure
+  geometry coverage proving card-section rectangles remain disjoint in every
+  desktop and mobile layout mode.
+- Added active four-player laptop browser coverage alongside the existing
+  mobile active-table and cross-viewport showdown checks.
+
+No requirement status changes: this closes a short-desktop visual regression
+within the already-complete two-to-four-player and responsive game view.

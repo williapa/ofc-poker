@@ -66,7 +66,10 @@ function readableError(error: unknown): string {
 }
 
 function FixedRules() {
-  return (
+  return "";
+  // This doesn't make sense to include until the rules are actually configurable
+  // beyond # of players, anyways
+  /* return (
     <fieldset className="fixed-rules" aria-describedby="fixed-rules-note">
       <legend>Table rules</legend>
       <div className="rule-row">
@@ -85,7 +88,7 @@ function FixedRules() {
         Rules and player count are locked after the lobby is created.
       </p>
     </fieldset>
-  );
+  ); */
 }
 
 interface HomeScreenProps {
@@ -124,7 +127,7 @@ function HomeScreen({
       <section className="hero" aria-labelledby="app-title">
         <Brand />
         <div className="hero-copy">
-          <p className="eyebrow">(It's a card game)</p>
+          <p className="eyebrow">It's a lot of fun, I promise</p>
           <h1 id="app-title">Build it in the open.</h1>
           <p className="lede">
             Thirteen cards. Three hands. Every decision on the table.

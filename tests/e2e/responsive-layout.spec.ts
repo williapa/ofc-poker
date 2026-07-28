@@ -5,8 +5,8 @@ import {
 } from "../../packages/client/src/game-view/responsive-layout-invariants";
 import { completeHand, createTable } from "./helpers";
 
-const MOBILE_VIEWPORTS = RESPONSIVE_VIEWPORTS.filter(
-  ({ mode }) => mode !== "desktop",
+const ACTIVE_CARD_VIEWPORTS = RESPONSIVE_VIEWPORTS.filter(
+  ({ name }) => name !== "desktop",
 );
 
 test("keeps the game layout bounded across desktop and mobile viewports", async ({
@@ -202,13 +202,17 @@ test("keeps the game layout bounded across desktop and mobile viewports", async 
   }
 });
 
-test("keeps active mobile card sections separate from player details", async ({
+test("keeps active card sections separate from player details", async ({
   browser,
 }) => {
   test.setTimeout(120_000);
 
-  for (const viewport of MOBILE_VIEWPORTS) {
-    for (const playerCount of ["2", "3", "4"] as const) {
+  for (const viewport of ACTIVE_CARD_VIEWPORTS) {
+    const playerCounts =
+      viewport.mode === "desktop"
+        ? (["4"] as const)
+        : (["2", "3", "4"] as const);
+    for (const playerCount of playerCounts) {
       const page = await openViewport(
         browser,
         test.info().project.use.baseURL,

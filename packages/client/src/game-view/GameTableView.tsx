@@ -1,5 +1,6 @@
 import {
   Component,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -18,7 +19,11 @@ import {
 import type { GameViewModel } from "../contracts/game-view";
 import { GAME_VIEW_TOKENS, ROW_DEFINITIONS } from "./design-system";
 import { GameTableScene, type SceneSeat } from "./GameTableScene";
-import { createCameraLayout, createSeatLayout } from "./layout";
+import {
+  createCameraLayout,
+  createFittedCameraZoom,
+  createSeatLayout,
+} from "./layout";
 import type { ResponsiveLayoutMode } from "./responsive-layout-invariants";
 import { useMediaQuery } from "./use-media-query";
 import { supportsWebGL } from "./webgl";
@@ -261,6 +266,8 @@ export function GameTableView({
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">(
     "idle",
   );
+  const canvasRegionRef = useRef<HTMLElement>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const selectedCard =
     interaction.key === interactionKey ? interaction.selectedCard : undefined;
   const assignments =
@@ -280,7 +287,29 @@ export function GameTableView({
     selectedCard,
   );
   const camera = createCameraLayout(layoutMode);
+  const fittedCameraZoom = createFittedCameraZoom(
+    layoutMode,
+    model.lobby.settings.seatCount,
+    canvasSize,
+  );
   const canRenderWebGL = webglSupported ?? supportsWebGL();
+
+  useLayoutEffect(() => {
+    const canvasRegion = canvasRegionRef.current;
+    if (canvasRegion === null || typeof ResizeObserver === "undefined") return;
+    const updateSize = () => {
+      const { width, height } = canvasRegion.getBoundingClientRect();
+      setCanvasSize((current) =>
+        current.width === width && current.height === height
+          ? current
+          : { width, height },
+      );
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(canvasRegion);
+    return () => observer.disconnect();
+  }, []);
 
   function selectCard(card: CardCode) {
     if (!model.isLocalTurn) return;
@@ -404,7 +433,11 @@ export function GameTableView({
       </header>
 
       <div className="game-stage">
-        <section className="game-canvas-region" aria-label="3D card table">
+        <section
+          ref={canvasRegionRef}
+          className="game-canvas-region"
+          aria-label="3D card table"
+        >
           {canRenderWebGL ? (
             <WebGLErrorBoundary>
               <Canvas
@@ -413,7 +446,7 @@ export function GameTableView({
                 dpr={[1, 1.5]}
                 camera={{
                   position: [...camera.position],
-                  zoom: camera.zoom,
+                  zoom: fittedCameraZoom,
                   near: camera.near,
                   far: camera.far,
                 }}

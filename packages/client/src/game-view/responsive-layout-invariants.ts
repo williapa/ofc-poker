@@ -32,6 +32,14 @@ export const RESPONSIVE_VIEWPORTS: readonly ResponsiveViewportInvariant[] =
       hasTouch: false,
     }),
     Object.freeze({
+      name: "laptop",
+      mode: "desktop",
+      width: 1440,
+      height: 810,
+      isMobile: false,
+      hasTouch: false,
+    }),
+    Object.freeze({
       name: "mobile portrait",
       mode: "mobile-portrait",
       width: 393,

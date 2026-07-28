@@ -11,12 +11,15 @@ The game view must satisfy the same structural rules in these browser shapes:
 | Mode             | Viewport    | Browser inputs         |
 | ---------------- | ----------- | ---------------------- |
 | Desktop          | 1440 x 1000 | Mouse and keyboard     |
+| Laptop           | 1440 x 810  | Mouse and keyboard     |
 | Mobile portrait  | 393 x 852   | Touch, mobile viewport |
 | Mobile landscape | 852 x 393   | Touch, mobile viewport |
 
-The mobile sizes intentionally use common narrow and short constraints rather
-than idealized device dimensions. Passing them is the minimum bar; later visual
-review can add more screenshots without changing the contract.
+The laptop size models the shorter browser content area from a 1440 x 900
+MacBook display. The mobile sizes intentionally use common narrow and short
+constraints rather than idealized device dimensions. Passing them is the
+minimum bar; later visual review can add more screenshots without changing the
+contract.
 
 ## Invariants
 
@@ -45,7 +48,9 @@ review can add more screenshots without changing the contract.
 The shared constants live in
 `packages/client/src/game-view/responsive-layout-invariants.ts`. Browser tests
 should import `RESPONSIVE_VIEWPORTS` and run the same geometry assertions for
-desktop, mobile portrait, and mobile landscape. The player-card selector is
-intentionally defined now as `[data-testid='player-card-section']`; the later UI
-implementation step should add stable geometry hooks or equivalent DOM wrappers
-for the Three.js-rendered card sections before enforcing invariant 5 in E2E.
+tall desktop, laptop, mobile portrait, and mobile landscape. Pure scene-layout
+tests additionally prove that every two-to-four-player card-section rectangle
+is disjoint and that the orthographic camera fits the complete scene to its
+actual canvas size. The player-card selector remains
+`[data-testid='player-card-section']` for a future DOM geometry hook around the
+Three.js-rendered sections.

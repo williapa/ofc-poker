@@ -54,11 +54,14 @@ test("renders accessible typed defaults and a 3 / 5 / 5 board motif without init
   ).toBeVisible();
   expect(screen.getByRole("radio", { name: /Local/ })).toBeChecked();
   expect(screen.getByRole("combobox", { name: "Players" })).toHaveValue("2");
+  /* 
+  // I got rid of the element that contained this text. I will restore it once there is other game config options
   expect(
     screen.getByText(
       "Rules and player count are locked after the lobby is created.",
     ),
   ).toBeVisible();
+  */
   expect(factory.create).not.toHaveBeenCalled();
   const motifRows = container.querySelectorAll(".board-motif-row");
   expect(motifRows).toHaveLength(3);

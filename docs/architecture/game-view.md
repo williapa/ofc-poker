@@ -15,10 +15,11 @@ side. Each seat renders three separate slot groups with fixed capacities:
 front `3`, middle `5`, and back `5`.
 
 The orthographic camera uses a slightly higher, wider framing below 700 CSS
-pixels. The WebGL surface fills the viewport behind DOM overlays, while the
-status and card-control regions reserve their own top and bottom space. Small
-screens use scrollable score, board, and card-control regions so essential
-controls are not clipped.
+pixels and reduces its zoom whenever the actual canvas is too short or narrow
+for the complete scene. Desktop player details reserve a left rail beside the
+canvas instead of covering it. The status and card-control regions reserve
+their own top and bottom space. Small screens use dedicated score, board, and
+card-control regions so essential controls are not clipped.
 
 ## Lighting, cards, and states
 

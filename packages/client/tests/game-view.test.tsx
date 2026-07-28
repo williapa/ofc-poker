@@ -14,7 +14,12 @@ import {
   cardFaceLabels,
   GAME_VIEW_TOKENS,
 } from "../src/game-view/design-system";
-import { createCameraLayout, createSeatLayout } from "../src/game-view/layout";
+import {
+  createCameraLayout,
+  createFittedCameraZoom,
+  createPlayerCardSectionBounds,
+  createSeatLayout,
+} from "../src/game-view/layout";
 import {
   RESPONSIVE_LAYOUT_INVARIANTS,
   RESPONSIVE_VIEWPORTS,
@@ -184,7 +189,7 @@ describe("seat and camera layout", () => {
     },
   );
 
-  test("compresses mobile side seats so card sections stay inside the mobile frame", () => {
+  test("preserves horizontal seat separation while compressing mobile depth", () => {
     const desktop = createSeatLayout(players(4), "player-0");
     const portrait = createSeatLayout(
       players(4),
@@ -197,10 +202,8 @@ describe("seat and camera layout", () => {
       "mobile-landscape",
     );
 
-    expect(portrait[1]?.position[0]).toBeGreaterThan(
-      desktop[1]?.position[0] ?? 0,
-    );
-    expect(portrait[3]?.position[0]).toBeLessThan(desktop[3]?.position[0] ?? 0);
+    expect(portrait[1]?.position[0]).toBe(desktop[1]?.position[0]);
+    expect(portrait[3]?.position[0]).toBe(desktop[3]?.position[0]);
     expect(Math.abs(portrait[2]?.position[2] ?? 0)).toBeLessThan(
       Math.abs(desktop[2]?.position[2] ?? 0),
     );
@@ -218,6 +221,37 @@ describe("seat and camera layout", () => {
       ),
     ).toBeGreaterThan(8);
   });
+
+  test.each([
+    [2, "desktop"],
+    [2, "mobile-portrait"],
+    [2, "mobile-landscape"],
+    [3, "desktop"],
+    [3, "mobile-portrait"],
+    [3, "mobile-landscape"],
+    [4, "desktop"],
+    [4, "mobile-portrait"],
+    [4, "mobile-landscape"],
+  ] as const)(
+    "keeps %i-player card sections disjoint in %s mode",
+    (count, mode) => {
+      const sections = createPlayerCardSectionBounds(count, mode);
+
+      for (const first of sections) {
+        for (const second of sections) {
+          if (first.relativeSeat >= second.relativeSeat) continue;
+          const overlapsHorizontally =
+            first.minX < second.maxX && first.maxX > second.minX;
+          const overlapsVertically =
+            first.minZ < second.maxZ && first.maxZ > second.minZ;
+          expect(
+            overlapsHorizontally && overlapsVertically,
+            `seats ${first.relativeSeat} and ${second.relativeSeat}`,
+          ).toBe(false);
+        }
+      }
+    },
+  );
 
   test.each([
     ["desktop", [0, 11, 8.5], 58],
@@ -246,6 +280,21 @@ describe("seat and camera layout", () => {
     expect(landscape.position[1]).toBeGreaterThan(desktop.position[1]);
   });
 
+  test("pulls back the desktop camera for a short laptop canvas", () => {
+    const tallDesktop = createFittedCameraZoom("desktop", 4, {
+      width: 1224,
+      height: 922,
+    });
+    const laptop = createFittedCameraZoom("desktop", 4, {
+      width: 1224,
+      height: 732,
+    });
+
+    expect(tallDesktop).toBe(58);
+    expect(laptop).toBeLessThan(tallDesktop);
+    expect(laptop).toBeGreaterThan(40);
+  });
+
   test("uses cards substantially larger than the first readability pass", () => {
     const previousArea = 0.92 * 1.3;
     expect(
@@ -255,6 +304,7 @@ describe("seat and camera layout", () => {
 
   test("defines responsive viewport and geometry invariants", () => {
     expect(RESPONSIVE_VIEWPORTS.map(({ mode }) => mode)).toEqual([
+      "desktop",
       "desktop",
       "mobile-portrait",
       "mobile-landscape",
@@ -271,9 +321,12 @@ describe("seat and camera layout", () => {
     expect(
       RESPONSIVE_LAYOUT_INVARIANTS.minimumHitTargetPx,
     ).toBeGreaterThanOrEqual(44);
-    expect(new Set(RESPONSIVE_VIEWPORTS.map(({ mode }) => mode)).size).toBe(
-      RESPONSIVE_VIEWPORTS.length,
+    expect(new Set(RESPONSIVE_VIEWPORTS.map(({ mode }) => mode))).toEqual(
+      new Set(["desktop", "mobile-portrait", "mobile-landscape"]),
     );
+    expect(
+      RESPONSIVE_VIEWPORTS.find(({ name }) => name === "laptop"),
+    ).toMatchObject({ mode: "desktop", width: 1440, height: 810 });
     expect(
       RESPONSIVE_VIEWPORTS.find(({ mode }) => mode === "mobile-portrait")
         ?.height,
