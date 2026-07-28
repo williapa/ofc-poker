@@ -8,7 +8,7 @@ test("creates a local AI lobby from the accessible setup form", async ({
   await expect(
     page.getByRole("heading", { name: "Build it in the open." }),
   ).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Local AI/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /^Local\b/ })).toBeChecked();
   await page.getByLabel("Display name").fill("Ada");
   await page.getByRole("combobox", { name: "Players" }).selectOption("4");
   await page.getByRole("button", { name: /Create table/ }).click();

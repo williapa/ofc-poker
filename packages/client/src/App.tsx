@@ -124,14 +124,14 @@ function HomeScreen({
       <section className="hero" aria-labelledby="app-title">
         <Brand />
         <div className="hero-copy">
-          <p className="eyebrow">A game of patience and nerve</p>
+          <p className="eyebrow">(It's a card game)</p>
           <h1 id="app-title">Build it in the open.</h1>
           <p className="lede">
             Thirteen cards. Three hands. Every decision on the table.
           </p>
         </div>
         <div className="board-motif" aria-hidden="true">
-          <div className="board-motif-row board-motif-row-front">
+          <div className="board-motif-row">
             <span />
             <span />
             <span />
@@ -156,8 +156,8 @@ function HomeScreen({
       <section className="setup-panel" aria-labelledby="setup-title">
         <div className="panel-heading">
           <p className="step">New table</p>
-          <h2 id="setup-title">Take a seat</h2>
-          <p>Set up the table once. The cards take it from there.</p>
+          <h2 id="setup-title">Setup</h2>
+          <p>Choose how you want to play</p>
         </div>
 
         {error ? (
@@ -207,8 +207,8 @@ function HomeScreen({
                   onChange={() => setValues({ ...values, mode: "local-ai" })}
                 />
                 <span>
-                  <strong>Local AI</strong>
-                  <small>Play instantly on this device</small>
+                  <strong>Local</strong>
+                  <small>Play instantly on this device.</small>
                 </span>
               </label>
               <label
@@ -223,7 +223,7 @@ function HomeScreen({
                 />
                 <span>
                   <strong>Multiplayer</strong>
-                  <small>Invite friends with a link</small>
+                  <small>Invite friends with a link.</small>
                 </span>
               </label>
             </div>
@@ -265,7 +265,7 @@ function HomeScreen({
           >
             <span>
               <strong>New to OFC?</strong>
-              <small>Follow one hand from deal to Fantasyland.</small>
+              <small>Not to worry! Click here for a tutorial.</small>
             </span>
             <span aria-hidden="true">Learn how to play →</span>
           </a>

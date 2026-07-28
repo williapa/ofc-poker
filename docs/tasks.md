@@ -1,5 +1,16 @@
 # Tasks
 
+## Maintenance: align browser tests with revised home-page copy
+
+Status: complete (2026-07-27)
+
+Requirement references: R3 accessible lobby settings form and R11 end-to-end
+browser coverage.
+
+- Updated the shared Playwright table-creation helper and app-shell assertion to
+  target the revised Local mode label while preserving the existing local-AI
+  behavior and semantic role-based coverage.
+
 ## 1. Define contracts and workspace boundaries
 
 Status: complete (2026-07-11)

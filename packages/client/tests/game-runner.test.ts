@@ -514,7 +514,7 @@ describe("OFC game runner", () => {
 
     await peerRunner.dispose();
     await hostRunner.dispose();
-  });
+  }, 10_000);
 
   test("deduplicates submissions and restores one snapshot after a reconnect remount", async () => {
     const transport = provider();

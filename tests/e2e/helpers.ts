@@ -10,7 +10,7 @@ export async function createTable(
   await page.getByLabel("Display name").fill(name);
   await page
     .getByRole("radio", {
-      name: new RegExp(mode === "local-ai" ? "Local AI" : "Multiplayer"),
+      name: new RegExp(mode === "local-ai" ? "^Local\\b" : "^Multiplayer\\b"),
     })
     .check();
   await page.getByRole("combobox", { name: "Players" }).selectOption(players);

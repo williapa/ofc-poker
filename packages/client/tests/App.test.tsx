@@ -52,7 +52,7 @@ test("renders accessible typed defaults and a 3 / 5 / 5 board motif without init
   expect(
     screen.getByRole("heading", { name: "Build it in the open." }),
   ).toBeVisible();
-  expect(screen.getByRole("radio", { name: /Local AI/ })).toBeChecked();
+  expect(screen.getByRole("radio", { name: /Local/ })).toBeChecked();
   expect(screen.getByRole("combobox", { name: "Players" })).toHaveValue("2");
   expect(
     screen.getByText(
@@ -67,7 +67,7 @@ test("renders accessible typed defaults and a 3 / 5 / 5 board motif without init
   ).toEqual([3, 5, 5]);
   expect(container.querySelector(".board-motif")?.textContent).toBe("");
 
-  fireEvent.click(screen.getByRole("radio", { name: /Local AI/ }));
+  fireEvent.click(screen.getByRole("radio", { name: /Local/ }));
   expect(factory.create).not.toHaveBeenCalled();
 });
 
