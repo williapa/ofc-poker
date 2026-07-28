@@ -360,11 +360,21 @@ export interface TutorialScreenProps {
 
 export function TutorialScreen({ homeUrl, onHome }: TutorialScreenProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const copyRef = useRef<HTMLElement>(null);
+  const visualRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const step = STEPS[stepIndex] ?? STEPS[0]!;
   const lastStep = stepIndex === STEPS.length - 1;
 
   useEffect(() => {
+    for (const container of [
+      stageRef.current,
+      copyRef.current,
+      visualRef.current,
+    ]) {
+      if (container) container.scrollTop = 0;
+    }
     headingRef.current?.focus();
   }, [stepIndex]);
 
@@ -410,8 +420,12 @@ export function TutorialScreen({ homeUrl, onHome }: TutorialScreenProps) {
         </a>
       </header>
 
-      <div className="tutorial-stage">
-        <section className="tutorial-copy" aria-labelledby="tutorial-title">
+      <div className="tutorial-stage" ref={stageRef}>
+        <section
+          className="tutorial-copy"
+          aria-labelledby="tutorial-title"
+          ref={copyRef}
+        >
           <p className="eyebrow">{step.eyebrow}</p>
           <h1 id="tutorial-title" tabIndex={-1} ref={headingRef}>
             {step.title}
@@ -420,7 +434,7 @@ export function TutorialScreen({ homeUrl, onHome }: TutorialScreenProps) {
           {step.callout}
         </section>
 
-        <div className="tutorial-visual">
+        <div className="tutorial-visual" ref={visualRef}>
           {step.visual === "royalties" ? (
             <RoyaltyTables />
           ) : step.visual === "complete" ? (

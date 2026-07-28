@@ -1,5 +1,18 @@
 import { expect, test } from "@playwright/test";
 
+const TUTORIAL_STEP_BUTTON_NAMES = [
+  "Go to step 1: Build three poker hands.",
+  "Go to step 2: Start with five cards.",
+  "Go to step 3: Place them, then lock them in.",
+  "Go to step 4: Place eight more, one at a time.",
+  "Go to step 5: Keep the rows in order.",
+  "Go to step 6: A stronger row above a weaker one fouls.",
+  "Go to step 7: Compare matching rows.",
+  "Go to step 8: Queens or better in front earn Fantasyland.",
+  "Go to step 9: Know your royalties.",
+  "Go to step 10: Congratulations!",
+] as const;
+
 test("creates a local AI lobby from the accessible setup form", async ({
   page,
 }) => {
@@ -139,6 +152,9 @@ test("opens, refreshes, and navigates the guided tutorial beneath the repository
 for (const viewport of [
   { name: "mobile portrait", width: 393, height: 852 },
   { name: "mobile landscape", width: 852, height: 393 },
+  { name: "mobile landscape breakpoint", width: 844, height: 390 },
+  { name: "compact mobile landscape", width: 667, height: 375 },
+  { name: "small mobile landscape", width: 568, height: 320 },
 ] as const) {
   test(`keeps tutorial navigation reachable in ${viewport.name}`, async ({
     page,
@@ -149,10 +165,95 @@ for (const viewport of [
     const navigation = page.locator(".tutorial-navigation");
     await expect(shell).toBeVisible();
     await expect(navigation).toBeVisible();
+
+    for (const buttonName of TUTORIAL_STEP_BUTTON_NAMES) {
+      await page.getByRole("button", { name: buttonName }).click();
+      const panels = await page.evaluate(() => {
+        const stage = document.querySelector(".tutorial-stage");
+        const copy = document.querySelector(".tutorial-copy");
+        const visual = document.querySelector(".tutorial-visual");
+        if (
+          !(stage instanceof HTMLElement) ||
+          !(copy instanceof HTMLElement) ||
+          !(visual instanceof HTMLElement)
+        )
+          throw new Error("Missing tutorial panels");
+        const copyBox = copy.getBoundingClientRect();
+        const stageBox = stage.getBoundingClientRect();
+        const visualBox = visual.getBoundingClientRect();
+        const copyStart = copy.firstElementChild?.getBoundingClientRect();
+        const visualStart = visual.firstElementChild?.getBoundingClientRect();
+        const stacked = Math.abs(copyBox.left - visualBox.left) <= 1;
+        return {
+          stacked,
+          copyBeforeVisual: copyBox.bottom <= visualBox.top + 1,
+          copyContentFits: copy.scrollHeight <= copy.clientHeight + 1,
+          copyContained:
+            copyBox.top >= stageBox.top - 1 &&
+            copyBox.bottom <= stageBox.bottom + 1,
+          copyStartVisible: copyStart ? copyStart.top >= copyBox.top - 1 : true,
+          visualContentFits: visual.scrollHeight <= visual.clientHeight + 1,
+          visualContained:
+            visualBox.top >= stageBox.top - 1 &&
+            visualBox.bottom <= stageBox.bottom + 1,
+          visualStartVisible: visualStart
+            ? visualStart.top >= visualBox.top - 1
+            : true,
+          stageOverflowY: getComputedStyle(stage).overflowY,
+          copyOverflowY: getComputedStyle(copy).overflowY,
+          visualOverflowY: getComputedStyle(visual).overflowY,
+        };
+      });
+
+      if (panels.stacked) {
+        expect(panels.copyBeforeVisual, buttonName).toBe(true);
+        expect(panels.copyContentFits, buttonName).toBe(true);
+        expect(panels.visualContentFits, buttonName).toBe(true);
+        expect(panels.stageOverflowY, buttonName).toBe("auto");
+      } else {
+        expect(panels.copyContained, buttonName).toBe(true);
+        expect(panels.copyStartVisible, buttonName).toBe(true);
+        expect(panels.visualContained, buttonName).toBe(true);
+        expect(panels.visualStartVisible, buttonName).toBe(true);
+        expect(panels.copyOverflowY, buttonName).toBe("auto");
+        expect(panels.visualOverflowY, buttonName).toBe("auto");
+      }
+    }
+
     await page
       .getByRole("button", { name: "Go to step 9: Know your royalties." })
       .click();
     await expect(page.getByRole("table")).toHaveCount(3);
+
+    const scrollResult = await page.evaluate(() => {
+      const stage = document.querySelector(".tutorial-stage");
+      const copy = document.querySelector(".tutorial-copy");
+      const visual = document.querySelector(".tutorial-visual");
+      if (
+        !(stage instanceof HTMLElement) ||
+        !(copy instanceof HTMLElement) ||
+        !(visual instanceof HTMLElement)
+      )
+        throw new Error("Missing tutorial scroll surfaces");
+      const stacked =
+        Math.abs(
+          copy.getBoundingClientRect().left -
+            visual.getBoundingClientRect().left,
+        ) <= 1;
+      const scrollSurface = stacked ? stage : visual;
+      scrollSurface.scrollTop = scrollSurface.scrollHeight;
+      return {
+        hasOverflow:
+          scrollSurface.scrollHeight > scrollSurface.clientHeight + 1,
+        reachedBottom:
+          Math.abs(
+            scrollSurface.scrollTop -
+              (scrollSurface.scrollHeight - scrollSurface.clientHeight),
+          ) <= 1,
+      };
+    });
+    expect(scrollResult.hasOverflow).toBe(true);
+    expect(scrollResult.reachedBottom).toBe(true);
 
     const geometry = await page.evaluate(() => {
       const shell = document.querySelector(".tutorial-shell");
@@ -184,6 +285,8 @@ for (const viewport of [
         horizontalOverflow:
           document.documentElement.scrollWidth >
           document.documentElement.clientWidth + 1,
+        navigationContentFits:
+          navigation.scrollWidth <= navigation.clientWidth + 1,
       };
     });
 
@@ -199,6 +302,7 @@ for (const viewport of [
       geometry.viewport.height + 1,
     );
     expect(geometry.horizontalOverflow).toBe(false);
+    expect(geometry.navigationContentFits).toBe(true);
     await expect(page.getByRole("button", { name: /Next/ })).toBeVisible();
   });
 }

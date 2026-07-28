@@ -69,6 +69,31 @@ describe("guided tutorial screen", () => {
     ).toBeVisible();
   });
 
+  test("returns scrollable panels to the top when the step changes", () => {
+    const { container } = renderTutorial();
+    const stage = container.querySelector(".tutorial-stage");
+    const copy = container.querySelector(".tutorial-copy");
+    const visual = container.querySelector(".tutorial-visual");
+    expect(stage).toBeInstanceOf(HTMLElement);
+    expect(copy).toBeInstanceOf(HTMLElement);
+    expect(visual).toBeInstanceOf(HTMLElement);
+    if (
+      !(stage instanceof HTMLElement) ||
+      !(copy instanceof HTMLElement) ||
+      !(visual instanceof HTMLElement)
+    )
+      throw new Error("Tutorial panels did not render");
+
+    stage.scrollTop = 120;
+    copy.scrollTop = 80;
+    visual.scrollTop = 160;
+    fireEvent.click(screen.getByRole("button", { name: /Next/ }));
+
+    expect(stage.scrollTop).toBe(0);
+    expect(copy.scrollTop).toBe(0);
+    expect(visual.scrollTop).toBe(0);
+  });
+
   test("explains Fantasyland entry and the three ways to stay", () => {
     renderTutorial();
     fireEvent.click(

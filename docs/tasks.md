@@ -691,6 +691,32 @@ coverage, and R13 repository-page routing.
 No existing requirement status changes: this adds instructional UX and
 regression evidence to the already-complete product requirements.
 
+## 23.1. Prevent mobile tutorial panel overflow
+
+Status: complete (2026-07-28)
+
+Requirement references: R1 static browser application, R9 unified game
+presentation, R10 unit/component coverage, and R11 browser coverage.
+
+- Changed the narrow tutorial layout to size its stacked instruction and visual
+  rows from their content so longer slides scroll as one stage instead of
+  painting copy over boards or royalty tables.
+- Contained touch overscroll within tutorial panels while preserving the fixed,
+  reachable navigation footer in portrait and short landscape viewports.
+- Kept short-landscape copy and visual panels bounded to the available stage
+  row, with flexible columns at narrower phone widths, so each panel can scroll
+  its own overflow instead of being clipped by the stage.
+- Top-aligned overflowing landscape instructions so their first lines remain
+  reachable, and compacted the one-row navigation for 568-pixel-wide screens.
+- Reset every tutorial scroll surface when a step changes so a newly selected
+  slide always opens at its heading.
+- Expanded browser coverage across all ten slides in mobile portrait and
+  multiple landscape breakpoints, including content-fit, effective scrolling,
+  viewport containment, and navigation reachability assertions.
+
+No requirement status changes: this hardens the responsive instructional flow
+within the already-complete product requirements.
+
 ## 24. Fit the four-player table to laptop viewports
 
 Status: complete (2026-07-28)
