@@ -53,4 +53,6 @@ tests additionally prove that every two-to-four-player card-section rectangle
 is disjoint and that the orthographic camera fits the complete scene to its
 actual canvas size. The player-card selector remains
 `[data-testid='player-card-section']` for a future DOM geometry hook around the
-Three.js-rendered sections.
+Three.js-rendered sections. High-density browser coverage additionally verifies
+that the mobile WebGL backing buffer follows the display pixel ratio at DPR `2`
+and `3`, subject to the documented mobile cap.

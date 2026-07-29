@@ -25,6 +25,11 @@ import {
   RESPONSIVE_VIEWPORTS,
   type ResponsiveLayoutMode,
 } from "../src/game-view/responsive-layout-invariants";
+import {
+  createCanvasDprRange,
+  resolveCanvasDpr,
+  resolveCardTextureAnisotropy,
+} from "../src/game-view/rendering";
 import { expectNoCriticalAccessibilityViolations } from "./setup";
 
 function players(count: 2 | 3 | 4): readonly GameViewPlayer[] {
@@ -342,6 +347,42 @@ describe("seat and camera layout", () => {
         ?.height ?? 0,
     );
   });
+});
+
+describe("WebGL rendering quality", () => {
+  test.each([
+    ["desktop", [1, 1.5]],
+    ["mobile-portrait", [1, 3]],
+    ["mobile-landscape", [1, 3]],
+  ] as const)("defines the %s canvas DPR range", (mode, expected) => {
+    expect(createCanvasDprRange(mode)).toEqual(expected);
+  });
+
+  test.each([
+    ["desktop", 0.75, 1],
+    ["desktop", 2, 1.5],
+    ["mobile-portrait", 2, 2],
+    ["mobile-portrait", 3, 3],
+    ["mobile-landscape", 4, 3],
+  ] as const)(
+    "resolves %s device DPR %s to %s",
+    (mode, devicePixelRatio, expected) => {
+      expect(resolveCanvasDpr(mode, devicePixelRatio)).toBe(expected);
+    },
+  );
+
+  test.each([
+    [0, 1],
+    [1, 1],
+    [4, 4],
+    [8, 8],
+    [16, 8],
+  ])(
+    "bounds supported texture anisotropy %s to %s",
+    (maximumSupported, expected) => {
+      expect(resolveCardTextureAnisotropy(maximumSupported)).toBe(expected);
+    },
+  );
 });
 
 test("defines one rank and one central suit label per card face", () => {

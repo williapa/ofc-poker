@@ -739,3 +739,26 @@ acceptance criteria.
 
 No requirement status changes: this closes a short-desktop visual regression
 within the already-complete two-to-four-player and responsive game view.
+
+## 25. Sharpen mobile card rank and suit rendering
+
+Status: complete (2026-07-29)
+
+Requirement references: R9 minimal 3D UI, R10 unit/component coverage, R11
+browser coverage, and Prompt 21 responsive layout acceptance criteria.
+
+- Replaced the fixed `1.5` WebGL pixel-ratio ceiling on mobile with a bounded
+  responsive policy that follows the device pixel ratio up to `3`, while
+  retaining the existing desktop cap for its larger drawing surface.
+- Added bounded anisotropic filtering to generated card-face textures so rank
+  and suit glyphs retain sharper edges under the orthographic camera's angled
+  sampling.
+- Added deterministic unit coverage for the DPR and anisotropy policies and
+  browser coverage that verifies the actual mobile canvas backing-store ratio
+  at portrait DPR `3` and landscape DPR `2`.
+- Visually reviewed active four-player portrait and landscape tables. Rank and
+  suit identifiers remained crisp, the existing layout stayed fitted, and the
+  browser reported no rendering warnings or errors.
+
+No requirement status changes: this fixes a high-density mobile rendering
+regression within the already-complete 3D game view and responsive layout.

@@ -19,16 +19,19 @@ pixels and reduces its zoom whenever the actual canvas is too short or narrow
 for the complete scene. Desktop player details reserve a left rail beside the
 canvas instead of covering it. The status and card-control regions reserve
 their own top and bottom space. Small screens use dedicated score, board, and
-card-control regions so essential controls are not clipped.
+card-control regions so essential controls are not clipped. Mobile canvases
+render at the device pixel ratio up to `3`; desktop retains a `1.5` upper bound
+for its substantially larger drawing surface.
 
 ## Lighting, cards, and states
 
 The table uses one warm directional key light, soft ambient light, restrained
 shadows, a dark green felt cylinder, and high-contrast ivory cards. Card faces
-use generated canvas textures with rank and suit glyphs. Fantasyland cards that
-must remain hidden use one blue-and-brass back. Selected cards lift and gain a
-gold outline; legal row slots use a green highlight. Equivalent DOM labels say
-`Selected`, `Place in …`, or `… unavailable`, so state never depends on color.
+use generated canvas textures with rank and suit glyphs and bounded anisotropic
+filtering for the angled camera view. Fantasyland cards that must remain hidden
+use one blue-and-brass back. Selected cards lift and gain a gold outline; legal
+row slots use a green highlight. Equivalent DOM labels say `Selected`, `Place
+in …`, or `… unavailable`, so state never depends on color.
 
 ## Motion and accessibility
 

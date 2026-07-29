@@ -24,6 +24,7 @@ import {
   createFittedCameraZoom,
   createSeatLayout,
 } from "./layout";
+import { createCanvasDprRange } from "./rendering";
 import type { ResponsiveLayoutMode } from "./responsive-layout-invariants";
 import { useMediaQuery } from "./use-media-query";
 import { supportsWebGL } from "./webgl";
@@ -443,7 +444,7 @@ export function GameTableView({
               <Canvas
                 orthographic
                 shadows
-                dpr={[1, 1.5]}
+                dpr={createCanvasDprRange(layoutMode)}
                 camera={{
                   position: [...camera.position],
                   zoom: fittedCameraZoom,

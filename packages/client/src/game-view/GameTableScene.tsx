@@ -14,6 +14,7 @@ import {
   ROW_DEFINITIONS,
 } from "./design-system";
 import type { SeatLayout } from "./layout";
+import { resolveCardTextureAnisotropy } from "./rendering";
 
 export interface SceneSeat {
   readonly id: PlayerId;
@@ -34,7 +35,7 @@ export interface GameTableSceneProps {
   readonly onSelectRow: (row: PlacementRow) => void;
 }
 
-function createFaceTexture(code: CardCode): Texture {
+function createFaceTexture(code: CardCode, maximumAnisotropy: number): Texture {
   const card = parseCard(code);
   const [rank, suit] = cardFaceLabels(code);
   const canvas = document.createElement("canvas");
@@ -66,6 +67,7 @@ function createFaceTexture(code: CardCode): Texture {
   );
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
+  texture.anisotropy = resolveCardTextureAnisotropy(maximumAnisotropy);
   return texture;
 }
 
@@ -86,7 +88,13 @@ function PlayingCard({
   readonly faceUp?: boolean;
   readonly onClick?: () => void;
 }) {
-  const texture = useMemo(() => createFaceTexture(code), [code]);
+  const maximumAnisotropy = useThree(({ gl }) =>
+    gl.capabilities.getMaxAnisotropy(),
+  );
+  const texture = useMemo(
+    () => createFaceTexture(code, maximumAnisotropy),
+    [code, maximumAnisotropy],
+  );
   useEffect(() => () => texture.dispose(), [texture]);
   const lift = selected ? GAME_VIEW_TOKENS.motion.selectedLift : 0;
   return (
