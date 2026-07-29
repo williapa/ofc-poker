@@ -762,3 +762,18 @@ browser coverage, and Prompt 21 responsive layout acceptance criteria.
 
 No requirement status changes: this fixes a high-density mobile rendering
 regression within the already-complete 3D game view and responsive layout.
+
+## 26. Round the 3D playing-card shape
+
+Status: complete (2026-07-29)
+
+Requirement references: R9 minimal 3D UI and R10 unit/component coverage.
+
+- Replaced the square-cornered card body and selection outline with shallow
+  extruded rounded rectangles while preserving the existing card dimensions,
+  materials, interaction, and layout.
+- Added a shared card-radius design token and deterministic geometry coverage
+  for the rounded 3D silhouette.
+
+No requirement status changes: this is a visual refinement within the
+already-complete 3D game view.

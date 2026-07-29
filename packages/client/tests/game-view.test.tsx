@@ -27,6 +27,7 @@ import {
 } from "../src/game-view/responsive-layout-invariants";
 import {
   createCanvasDprRange,
+  createRoundedCardGeometry,
   resolveCanvasDpr,
   resolveCardTextureAnisotropy,
 } from "../src/game-view/rendering";
@@ -305,6 +306,26 @@ describe("seat and camera layout", () => {
     expect(
       GAME_VIEW_TOKENS.card.width * GAME_VIEW_TOKENS.card.height,
     ).toBeGreaterThanOrEqual(previousArea * 1.5);
+  });
+
+  test("rounds the 3D playing-card silhouette", () => {
+    expect(GAME_VIEW_TOKENS.card.borderRadius).toBeGreaterThan(0);
+    const geometry = createRoundedCardGeometry(
+      GAME_VIEW_TOKENS.card.width,
+      GAME_VIEW_TOKENS.card.height,
+      GAME_VIEW_TOKENS.card.depth,
+      GAME_VIEW_TOKENS.card.borderRadius,
+    );
+
+    geometry.computeBoundingBox();
+    expect(geometry.boundingBox?.min.x).toBeCloseTo(
+      -GAME_VIEW_TOKENS.card.width / 2,
+    );
+    expect(geometry.boundingBox?.max.z).toBeCloseTo(
+      GAME_VIEW_TOKENS.card.height / 2,
+    );
+    expect(geometry.getAttribute("position").count).toBeGreaterThan(36);
+    geometry.dispose();
   });
 
   test("defines responsive viewport and geometry invariants", () => {

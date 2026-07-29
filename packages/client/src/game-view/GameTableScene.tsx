@@ -14,7 +14,10 @@ import {
   ROW_DEFINITIONS,
 } from "./design-system";
 import type { SeatLayout } from "./layout";
-import { resolveCardTextureAnisotropy } from "./rendering";
+import {
+  createRoundedCardGeometry,
+  resolveCardTextureAnisotropy,
+} from "./rendering";
 
 export interface SceneSeat {
   readonly id: PlayerId;
@@ -95,7 +98,34 @@ function PlayingCard({
     () => createFaceTexture(code, maximumAnisotropy),
     [code, maximumAnisotropy],
   );
-  useEffect(() => () => texture.dispose(), [texture]);
+  const cardGeometry = useMemo(
+    () =>
+      createRoundedCardGeometry(
+        GAME_VIEW_TOKENS.card.width,
+        GAME_VIEW_TOKENS.card.height,
+        GAME_VIEW_TOKENS.card.depth,
+        GAME_VIEW_TOKENS.card.borderRadius,
+      ),
+    [],
+  );
+  const selectionGeometry = useMemo(
+    () =>
+      createRoundedCardGeometry(
+        GAME_VIEW_TOKENS.card.width + 0.09,
+        GAME_VIEW_TOKENS.card.height + 0.09,
+        GAME_VIEW_TOKENS.card.depth,
+        GAME_VIEW_TOKENS.card.borderRadius + 0.045,
+      ),
+    [],
+  );
+  useEffect(
+    () => () => {
+      texture.dispose();
+      cardGeometry.dispose();
+      selectionGeometry.dispose();
+    },
+    [cardGeometry, selectionGeometry, texture],
+  );
   const lift = selected ? GAME_VIEW_TOKENS.motion.selectedLift : 0;
   return (
     <group
@@ -118,13 +148,7 @@ function PlayingCard({
         : {})}
     >
       <mesh castShadow receiveShadow>
-        <boxGeometry
-          args={[
-            GAME_VIEW_TOKENS.card.width,
-            GAME_VIEW_TOKENS.card.depth,
-            GAME_VIEW_TOKENS.card.height,
-          ]}
-        />
+        <primitive object={cardGeometry} attach="geometry" />
         <meshStandardMaterial
           color={
             faceUp
@@ -171,13 +195,7 @@ function PlayingCard({
       )}
       {selected ? (
         <mesh position={[0, -0.005, 0]}>
-          <boxGeometry
-            args={[
-              GAME_VIEW_TOKENS.card.width + 0.09,
-              GAME_VIEW_TOKENS.card.depth,
-              GAME_VIEW_TOKENS.card.height + 0.09,
-            ]}
-          />
+          <primitive object={selectionGeometry} attach="geometry" />
           <meshStandardMaterial color={GAME_VIEW_TOKENS.color.selected} />
         </mesh>
       ) : null}

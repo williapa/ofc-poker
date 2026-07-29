@@ -41,7 +41,13 @@ export const GAME_VIEW_TOKENS = Object.freeze({
     suitX: 128,
     suitY: 222,
   },
-  card: { width: 1.16, height: 1.64, depth: 0.035, gap: 0.12 },
+  card: {
+    width: 1.16,
+    height: 1.64,
+    depth: 0.035,
+    borderRadius: 0.09,
+    gap: 0.12,
+  },
   motion: {
     durationMs: 160,
     selectedLift: 0.12,
