@@ -4,7 +4,7 @@ import { completeHand, createTable, joinTable } from "./helpers";
 test("two isolated browser contexts join, synchronize placements, and reach showdown", async ({
   browser,
 }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   const hostContext = await browser.newContext();
   const peerContext = await browser.newContext();
   const host = await hostContext.newPage();

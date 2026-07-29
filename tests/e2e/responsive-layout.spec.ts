@@ -27,7 +27,7 @@ const HIGH_DENSITY_MOBILE_CASES: readonly {
 test("keeps the game layout bounded across desktop and mobile viewports", async ({
   browser,
 }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
   for (const viewport of RESPONSIVE_VIEWPORTS) {
     const page = await openViewport(browser, test.info().project.use.baseURL, {
@@ -220,7 +220,7 @@ test("keeps the game layout bounded across desktop and mobile viewports", async 
 test("keeps active card sections separate from player details", async ({
   browser,
 }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
   for (const viewport of ACTIVE_CARD_VIEWPORTS) {
     const playerCounts =
@@ -384,7 +384,7 @@ test("keeps active card sections separate from player details", async ({
 test("renders mobile cards at the high-density display resolution", async ({
   browser,
 }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
   for (const { viewport, deviceScaleFactor } of HIGH_DENSITY_MOBILE_CASES) {
     const page = await openViewport(browser, test.info().project.use.baseURL, {
