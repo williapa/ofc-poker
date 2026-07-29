@@ -14,7 +14,9 @@ import {
   ROW_DEFINITIONS,
 } from "./design-system";
 import type { SeatLayout } from "./layout";
+import type { ResponsiveLayoutMode } from "./responsive-layout-invariants";
 import {
+  createPokerTableGeometry,
   createRoundedCardGeometry,
   resolveCardTextureAnisotropy,
 } from "./rendering";
@@ -28,6 +30,7 @@ export interface SceneSeat {
 }
 
 export interface GameTableSceneProps {
+  readonly layoutMode: ResponsiveLayoutMode;
   readonly seats: readonly SceneSeat[];
   readonly pendingCards: readonly CardCode[];
   readonly assignments: Readonly<Partial<Record<CardCode, PlacementRow>>>;
@@ -326,7 +329,30 @@ function AimCamera() {
   return null;
 }
 
+function PokerTable({
+  layoutMode,
+}: {
+  readonly layoutMode: ResponsiveLayoutMode;
+}) {
+  const geometry = useMemo(
+    () => createPokerTableGeometry(layoutMode),
+    [layoutMode],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <mesh receiveShadow position={[0, -0.08, 0]} name="poker-table">
+      <primitive object={geometry} attach="geometry" />
+      <meshStandardMaterial
+        color={GAME_VIEW_TOKENS.color.felt}
+        roughness={0.9}
+      />
+    </mesh>
+  );
+}
+
 export function GameTableScene({
+  layoutMode,
   seats,
   pendingCards,
   assignments,
@@ -354,13 +380,7 @@ export function GameTableScene({
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-      <mesh receiveShadow position={[0, -0.08, 0]}>
-        <cylinderGeometry args={[9.2, 9.35, 0.2, 64]} />
-        <meshStandardMaterial
-          color={GAME_VIEW_TOKENS.color.felt}
-          roughness={0.9}
-        />
-      </mesh>
+      <PokerTable layoutMode={layoutMode} />
       {seats.map((seat) => (
         <SeatBoard
           key={seat.id}

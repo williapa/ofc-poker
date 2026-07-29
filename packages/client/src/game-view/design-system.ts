@@ -48,6 +48,13 @@ export const GAME_VIEW_TOKENS = Object.freeze({
     borderRadius: 0.09,
     gap: 0.12,
   },
+  table: {
+    width: 23.6,
+    mobilePortraitWidth: 20.2,
+    depth: 18.4,
+    thickness: 0.2,
+    endRadius: 9.2,
+  },
   motion: {
     durationMs: 160,
     selectedLift: 0.12,

@@ -26,7 +26,7 @@ for its substantially larger drawing surface.
 ## Lighting, cards, and states
 
 The table uses one warm directional key light, soft ambient light, restrained
-shadows, a dark green felt cylinder, and high-contrast ivory cards. Card faces
+shadows, a dark green felt racetrack table, and high-contrast ivory cards. Card faces
 use generated canvas textures with rank and suit glyphs and bounded anisotropic
 filtering for the angled camera view. Fantasyland cards that must remain hidden
 use one blue-and-brass back. Selected cards lift and gain a gold outline; legal

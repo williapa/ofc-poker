@@ -27,6 +27,7 @@ import {
 } from "../src/game-view/responsive-layout-invariants";
 import {
   createCanvasDprRange,
+  createPokerTableGeometry,
   createRoundedCardGeometry,
   resolveCanvasDpr,
   resolveCardTextureAnisotropy,
@@ -326,6 +327,53 @@ describe("seat and camera layout", () => {
     );
     expect(geometry.getAttribute("position").count).toBeGreaterThan(36);
     geometry.dispose();
+  });
+
+  test("uses a wide racetrack silhouette for the poker table", () => {
+    expect(GAME_VIEW_TOKENS.table.endRadius).toBe(
+      GAME_VIEW_TOKENS.table.depth / 2,
+    );
+    expect(GAME_VIEW_TOKENS.table.width).toBeGreaterThan(
+      GAME_VIEW_TOKENS.table.depth,
+    );
+    const geometry = createPokerTableGeometry();
+
+    geometry.computeBoundingBox();
+    expect(geometry.boundingBox?.min.x).toBeCloseTo(
+      -GAME_VIEW_TOKENS.table.width / 2,
+    );
+    expect(geometry.boundingBox?.max.x).toBeCloseTo(
+      GAME_VIEW_TOKENS.table.width / 2,
+    );
+    expect(geometry.boundingBox?.min.z).toBeCloseTo(
+      -GAME_VIEW_TOKENS.table.depth / 2,
+    );
+    expect(geometry.boundingBox?.max.z).toBeCloseTo(
+      GAME_VIEW_TOKENS.table.depth / 2,
+    );
+    geometry.dispose();
+  });
+
+  test("narrows only the mobile portrait poker table", () => {
+    const desktop = createPokerTableGeometry("desktop");
+    const landscape = createPokerTableGeometry("mobile-landscape");
+    const portrait = createPokerTableGeometry("mobile-portrait");
+    desktop.computeBoundingBox();
+    landscape.computeBoundingBox();
+    portrait.computeBoundingBox();
+
+    const geometryWidth = (geometry: typeof desktop) =>
+      (geometry.boundingBox?.max.x ?? 0) - (geometry.boundingBox?.min.x ?? 0);
+    expect(geometryWidth(desktop)).toBeCloseTo(GAME_VIEW_TOKENS.table.width);
+    expect(geometryWidth(landscape)).toBeCloseTo(GAME_VIEW_TOKENS.table.width);
+    expect(geometryWidth(portrait)).toBeCloseTo(
+      GAME_VIEW_TOKENS.table.mobilePortraitWidth,
+    );
+    expect(geometryWidth(portrait)).toBeLessThan(geometryWidth(desktop));
+
+    desktop.dispose();
+    landscape.dispose();
+    portrait.dispose();
   });
 
   test("defines responsive viewport and geometry invariants", () => {

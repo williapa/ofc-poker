@@ -777,3 +777,33 @@ Requirement references: R9 minimal 3D UI and R10 unit/component coverage.
 
 No requirement status changes: this is a visual refinement within the
 already-complete 3D game view.
+
+## 27.1. Contain the poker table in mobile portrait
+
+Status: complete (2026-07-29)
+
+Requirement references: R9 minimal 3D UI, R10 unit/component coverage, and
+Prompt 21 responsive layout acceptance criteria.
+
+- Reduced only the mobile-portrait racetrack width so both rounded table edges
+  remain inside the narrow viewport.
+- Preserved the existing table dimensions for desktop and mobile landscape.
+- Added deterministic geometry coverage for the mode-specific dimensions.
+
+No requirement status changes: this is a responsive visual refinement within
+the already-complete 3D game view.
+
+## 27. Use a standard poker-table silhouette
+
+Status: complete (2026-07-29)
+
+Requirement references: R9 minimal 3D UI and R10 unit/component coverage.
+
+- Replaced the circular felt cylinder with an extruded racetrack surface made
+  from two semicircular ends joined by a rectangular center.
+- Kept the existing table depth, seat coordinates, camera behavior, materials,
+  lighting, and interactions while extending the felt horizontally.
+- Added deterministic geometry coverage for the table proportions and bounds.
+
+No requirement status changes: this is a visual refinement within the
+already-complete 3D game view.

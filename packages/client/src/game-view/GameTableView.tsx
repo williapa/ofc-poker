@@ -455,6 +455,7 @@ export function GameTableView({
                 gl={{ antialias: true, powerPreference: "high-performance" }}
               >
                 <GameTableScene
+                  layoutMode={layoutMode}
                   seats={seats}
                   pendingCards={pendingCards}
                   assignments={assignments}

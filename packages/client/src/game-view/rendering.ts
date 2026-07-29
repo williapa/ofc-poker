@@ -1,5 +1,6 @@
 import type { ResponsiveLayoutMode } from "./responsive-layout-invariants";
 import { ExtrudeGeometry, Shape } from "three";
+import { GAME_VIEW_TOKENS } from "./design-system";
 
 const MIN_CANVAS_DPR = 1;
 const DESKTOP_MAX_CANVAS_DPR = 1.5;
@@ -84,4 +85,17 @@ export function createRoundedCardGeometry(
   geometry.translate(0, 0, -depth / 2);
   geometry.rotateX(Math.PI / 2);
   return geometry;
+}
+
+export function createPokerTableGeometry(
+  mode: ResponsiveLayoutMode = "desktop",
+): ExtrudeGeometry {
+  return createRoundedCardGeometry(
+    mode === "mobile-portrait"
+      ? GAME_VIEW_TOKENS.table.mobilePortraitWidth
+      : GAME_VIEW_TOKENS.table.width,
+    GAME_VIEW_TOKENS.table.depth,
+    GAME_VIEW_TOKENS.table.thickness,
+    GAME_VIEW_TOKENS.table.endRadius,
+  );
 }
